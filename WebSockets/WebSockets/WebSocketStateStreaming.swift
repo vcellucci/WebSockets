@@ -61,7 +61,17 @@ class WebSocketStateStreaming : WebSocketState{
             if let message = String(bytes: data, encoding: .utf8) {
                 webSocketStateUtils?.raiseTextMessage(message: message)
             }
+        }
+        else if(payloadLen == 126){
+            let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
+            var u16 : UInt16 = 0
+            dataBytes.getBytes(&u16, length: 2)
+            u16 = u16.byteSwapped
             
+            let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(u16)))
+            if let message = String(bytes: data, encoding: .utf8) {
+                webSocketStateUtils?.raiseTextMessage(message: message)
+            }            
         }
     }
     
@@ -90,7 +100,7 @@ class WebSocketStateStreaming : WebSocketState{
     }
     
     private func sendData(_ data: [UInt8], _ messageType : UInt8){
-        let headerSize = 6  // 2 + 4 min headersize
+        var headerSize = 6  // 2 + 4 min headersize
         var maskByteStart = 2
         let mask : [UInt8] = [0x1, 0x2, 0x3, 0x4]
         // first setup frame data
@@ -99,6 +109,15 @@ class WebSocketStateStreaming : WebSocketState{
         let payloadLen =  data.count//message.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)
         if( payloadLen < 126) {
             webSocketFrame[1] = 0x80 | UInt8(payloadLen)
+        }
+        else {
+            let uint16Len = UInt16(payloadLen)
+            webSocketFrame[1] = 0xfe
+            webSocketFrame[2] = UInt8((uint16Len & 0xff00) >> 8)
+            webSocketFrame[3] = UInt8(uint16Len & 0x00ff)
+            
+            headerSize += 2
+            maskByteStart += 2
         }
         
         for ubyte in mask {
