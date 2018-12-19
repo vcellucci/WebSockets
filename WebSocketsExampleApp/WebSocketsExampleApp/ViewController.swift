@@ -33,6 +33,11 @@ class ViewController: UIViewController {
             }
         }
         
+        webSocket.didReceiveBinary = {
+            (data) in
+            print("Received binary data")
+        }
+        
         webSocket.didReceiveError = {
             (message) in
             print("Receved error: ", message)

@@ -20,6 +20,7 @@ class WebSocketStateUtils {
     var didClose: (()->())?
     var didConnect : (()->())?
     var didReceiveMessage : ((String)->())?
+    var didReceiveBinary : ((ArraySlice<UInt8>)->())?
     
     func raiseError(error msg : String ){
         debugPrint(msg)
@@ -45,6 +46,12 @@ class WebSocketStateUtils {
     func raiseTextMessage(message msg : String){
         if let didReceiveMessageCallback = didReceiveMessage {
             didReceiveMessageCallback(msg)
+        }
+    }
+    
+    func raiseBinaryMessage(data bytes: ArraySlice<UInt8>){
+        if let didReceiveBinaryCallback = didReceiveBinary {
+            didReceiveBinaryCallback(bytes)
         }
     }
 }

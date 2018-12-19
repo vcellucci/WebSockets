@@ -16,7 +16,6 @@ class WebSocketStateUpgrade : WebSocketState {
     let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 2048)
     var webSocketStateUtils: WebSocketStateUtils?
     
-    
     func enter (){}
     
     func getState() -> WebSocketTransition {
@@ -104,6 +103,6 @@ class WebSocketStateUpgrade : WebSocketState {
     func send(bytes data: [UInt8], binary isBinary: Bool) -> WebSocketTransition {
         debugPrint("Warning, message sent before handshake finished.  This message will not be sent")
         return .None
-    }  
+    }
     
 }
