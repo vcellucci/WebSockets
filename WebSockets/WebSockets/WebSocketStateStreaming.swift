@@ -92,16 +92,13 @@ class WebSocketStateStreaming : WebSocketState{
         return .Streaming
     }
     
-    func sendMessage(string msg : String) -> WebSocketTransition {
-        debugPrint("Sending message: ", msg)
-        let data = [UInt8](msg.utf8)
-        sendData(data, WebsocketOpCode.TextFrame.rawValue)
-        return .None
-    }
-    
-    func sendBinary(bytes data: [UInt8]) -> WebSocketTransition {
-        debugPrint("Sending binary")
-        sendData(data, WebsocketOpCode.BinaryFrame.rawValue)
+    func send(bytes data: [UInt8], binary isBinary: Bool) -> WebSocketTransition {
+        if( isBinary ){
+            sendData(data, WebsocketOpCode.BinaryFrame.rawValue)
+        }
+        else {
+            sendData(data, WebsocketOpCode.TextFrame.rawValue)
+        }
         return .None
     }
     

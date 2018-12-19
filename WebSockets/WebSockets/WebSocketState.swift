@@ -58,7 +58,6 @@ protocol WebSocketState {
     func didReceiveData() -> WebSocketTransition
     func canWriteData() -> WebSocketTransition
     func getState() -> WebSocketTransition
-    func sendMessage(string msg : String) -> WebSocketTransition
-    func sendBinary(bytes data : [UInt8]) -> WebSocketTransition
+    func send(bytes data : [UInt8], binary isBinary : Bool) -> WebSocketTransition
     func enter()
 }
