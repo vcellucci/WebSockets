@@ -14,7 +14,6 @@ This Websocket Framework is aimed at providing a swift implementation of the Web
 1. Add the Framework as an embedded binary to your app
 2. This framework uses callbacks instead of a protocol for finer grain usage
 3. After the callbacks of interest have been implemented, open the websocket
-4. Add Support for binary
 
 ``` Swift
 
