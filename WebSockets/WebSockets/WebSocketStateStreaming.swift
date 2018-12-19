@@ -12,6 +12,7 @@ class WebSocketStateStreaming : WebSocketState{
     var outputStream: OutputStream?
     var url: URL?
     var webSocketStateUtils : WebSocketStateUtils?
+    var initiatedClose = false
     
     private var bytesSent = 0
     private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: (1024*64)+8)
@@ -38,13 +39,16 @@ class WebSocketStateStreaming : WebSocketState{
             switch WebsocketOpCode(rawValue: opcode) {
             case .some(.TextFrame):
                 debugPrint("TextFrame data available")
-                readTextData()
+                readData(false)
+                break
+            case .some(.BinaryFrame):
+                readData(true)
                 break
             case .some(.Ping):
                 //pong()
                 break
             case .some(.Close):
-                //close()
+                receivedClose()
                 transition = .Close
                 break
             default:
@@ -54,13 +58,11 @@ class WebSocketStateStreaming : WebSocketState{
         return transition
     }
     
-    private func readTextData() {
+    private func readData(_ binary : Bool) {
         let payloadLen = webSocketFrame[1]
         if payloadLen < 126 {
             let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by : 2), count: Int(payloadLen)))
-            if let message = String(bytes: data, encoding: .utf8) {
-                webSocketStateUtils?.raiseTextMessage(message: message)
-            }
+            notifyData(data, binary)
         }
         else if(payloadLen == 126){
             let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
@@ -69,9 +71,21 @@ class WebSocketStateStreaming : WebSocketState{
             u16 = u16.byteSwapped
             
             let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(u16)))
-            if let message = String(bytes: data, encoding: .utf8) {
+            notifyData(data, binary)
+        }
+    }
+    
+    private func notifyData(_ arraySlice : ArraySlice<UInt8>, _ binary : Bool) {
+        if( binary ) {
+            webSocketStateUtils?.raiseBinaryMessage(data: arraySlice)
+        }
+        else {
+            if let message = String(bytes: arraySlice, encoding: .utf8) {
                 webSocketStateUtils?.raiseTextMessage(message: message)
-            }            
+            }
+            else {
+                webSocketStateUtils?.raiseError(error: "Unexpected error while trying to decode message.")
+            }
         }
     }
     
@@ -137,7 +151,9 @@ class WebSocketStateStreaming : WebSocketState{
         debugPrint("Sent bytes:", bytesSent!)
     }
     
-    
+    private func receivedClose(){
+       
+    }
     
     
 }
