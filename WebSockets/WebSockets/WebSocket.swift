@@ -127,4 +127,13 @@ public class WebSocket : NSObject, StreamDelegate {
             }
         }
     }
+    
+    public func sendBinary(bytes data: [UInt8]) {
+        let result = currentSate?.sendBinary(bytes: data)
+        if let state = result {
+            if( state != .None ){
+                changeState(state, currentUrl!)
+            }
+        }
+    }
 }

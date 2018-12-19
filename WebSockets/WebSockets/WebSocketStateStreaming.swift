@@ -99,6 +99,12 @@ class WebSocketStateStreaming : WebSocketState{
         return .None
     }
     
+    func sendBinary(bytes data: [UInt8]) -> WebSocketTransition {
+        debugPrint("Sending binary")
+        sendData(data, WebsocketOpCode.BinaryFrame.rawValue)
+        return .None
+    }
+    
     private func sendData(_ data: [UInt8], _ messageType : UInt8){
         var headerSize = 6  // 2 + 4 min headersize
         var maskByteStart = 2
