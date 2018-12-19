@@ -101,14 +101,9 @@ class WebSocketStateUpgrade : WebSocketState {
         outputStream?.write(data, maxLength: data.count)
     }
     
-    func sendMessage(string msg : String) -> WebSocketTransition {
+    func send(bytes data: [UInt8], binary isBinary: Bool) -> WebSocketTransition {
         debugPrint("Warning, message sent before handshake finished.  This message will not be sent")
         return .None
-    }
-    
-    func sendBinary(bytes data : [UInt8]) ->WebSocketTransition {
-        debugPrint("Warning, message sent before handshake finished.  This message will not be sent")
-        return .None
-    }
+    }  
     
 }

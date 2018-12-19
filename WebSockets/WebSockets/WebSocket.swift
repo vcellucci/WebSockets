@@ -120,16 +120,16 @@ public class WebSocket : NSObject, StreamDelegate {
     }
     
     public func sendMessage(string msg : String){
-        let result = currentSate?.sendMessage(string: msg)
-        if let state = result {
-            if( state != .None ){
-                changeState(state, currentUrl!)
-            }
-        }
+        let data = [UInt8](msg.utf8)
+        sendData(bytes: data, binary: false)
     }
     
     public func sendBinary(bytes data: [UInt8]) {
-        let result = currentSate?.sendBinary(bytes: data)
+        sendData(bytes: data, binary: true)
+    }
+    
+    private func sendData(bytes data: [UInt8], binary : Bool){
+        let result = currentSate?.send(bytes: data, binary: binary)
         if let state = result {
             if( state != .None ){
                 changeState(state, currentUrl!)
