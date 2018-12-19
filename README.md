@@ -1,5 +1,5 @@
 # WebSockets
-Swift WebSockets Framework for iOS
+Swift WebSockets Framework for iOS.  
 This Websocket Framework is aimed at providing a swift implementation of the Websocket RFC.
 
 ## Limitations
