@@ -152,8 +152,14 @@ class WebSocketStateStreaming : WebSocketState{
     }
     
     private func receivedClose(){
-       
+        if let ins = inputStream {
+            ins.close()
+        }
+        
+        if let os = outputStream {
+            os.close()
+        }
+        
+        webSocketStateUtils?.raiseClose()
     }
-    
-    
 }
