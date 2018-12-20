@@ -25,23 +25,24 @@ enum WebsocketOpCode : UInt8 {
 }
 
 class WebSocketStateUtils {
-    var didReceiveError: ((String)->())?
-    var didClose: (()->())?
+    var didReceiveError: ((String, Error)->())?
+    var didClose: ((String)->())?
     var didConnect : (()->())?
     var didReceiveMessage : ((String)->())?
     var didReceiveBinary : ((ArraySlice<UInt8>)->())?
     var additionalHeaders = [String:String]()
     
-    func raiseError(error msg : String ){
+    
+    func raiseError(error msg : String, code c : Error ){
         debugPrint(msg)
         if let didReceiveErrorCallback = didReceiveError {
-            didReceiveErrorCallback(msg)
+            didReceiveErrorCallback(msg, c)
         }
     }
     
-    func raiseClose() {
+    func raiseClose(reason msg : String) {
         if let didCloseCallback = didClose {
-            didCloseCallback()
+            didCloseCallback(msg)
         }
     }
     
@@ -80,4 +81,5 @@ protocol WebSocketState {
     func getState() -> WebSocketTransition
     func send(bytes data : [UInt8], binary isBinary : Bool) -> WebSocketTransition
     func enter()
+    func streamClosed(stream s : Stream) -> WebSocketTransition
 }

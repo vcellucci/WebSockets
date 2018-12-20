@@ -120,4 +120,9 @@ class WebSocketStateUpgrade : WebSocketState {
         return .None
     }
     
+    func streamClosed(stream s: Stream) ->WebSocketTransition {
+        webSocketStateUtils?.raiseError(error: "Unexpected Close during upgrade.", code: NSError(domain: "WebSockets", code: -1, userInfo: nil))
+        return .Idle
+    }
+    
 }

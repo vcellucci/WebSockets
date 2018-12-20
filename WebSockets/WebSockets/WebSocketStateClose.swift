@@ -27,12 +27,7 @@ class WebSocketStateClose: WebSocketState {
                 let opcode = webSocketFrame[0] & 0x0f
                 
                 if( opcode == WebsocketOpCode.Close.rawValue) {
-                    webSocketStateUtils?.raiseClose()
-                }
-                
-                let payloadLen = webSocketFrame[1]
-                if( payloadLen > 0 ){
-                    debugPrint("Sent a resson?")
+                    webSocketStateUtils?.raiseClose(reason: "Close handshake completed")
                 }
             }
             webSocketFrame.deallocate()
@@ -60,5 +55,9 @@ class WebSocketStateClose: WebSocketState {
         if let os = outputStream {
             os.write(UnsafePointer<UInt8>(closeFrame), maxLength: 2)
         }
+    }
+    
+    func streamClosed(stream s: Stream) ->WebSocketTransition {
+        return .None
     }
 }

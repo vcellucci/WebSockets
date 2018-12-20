@@ -14,8 +14,8 @@ public class WebSocket : NSObject, StreamDelegate {
     public var didConnect : (()->())?
     public var didReceiveMessage : ( (String)->() )?
     public var didReceiveBinary : ( (ArraySlice<UInt8>)->() )?
-    public var didReceiveError : ( (String)->() )?
-    public var didClose : (()->())?
+    public var didReceiveError : ( (String, Error)->() )?
+    public var didClose : ((String)->())?
     public var additionalHeaders  = [String:String]()
     
     private var webSocketStateUtils = WebSocketStateUtils()
@@ -27,12 +27,10 @@ public class WebSocket : NSObject, StreamDelegate {
     // Opens an endpoint and begins the upgrade process, the socket is not yet connected.
     public func open(location url : String) -> Bool {
         
-        webSocketStateUtils.didReceiveError = self.didReceiveError
-
         currentUrl = URL(string: url)
         // ws://echo.websocket.org
         if( currentUrl?.host == nil ){
-            webSocketStateUtils.raiseError(error : "Host cannot be nil")
+            webSocketStateUtils.raiseError(error : "Host cannot be nil", code: NSError(domain: "WebSocket", code: 500, userInfo: nil))
             return false;
         }
         
@@ -40,7 +38,7 @@ public class WebSocket : NSObject, StreamDelegate {
         
         // both have to be valid
         if( inputStream == nil || outputStream == nil ) {
-            webSocketStateUtils.raiseError(error: "Failed to open streams to host: " + url)
+            webSocketStateUtils.raiseError(error: "Failed to open streams to host: " + url, code: NSError(domain: "WebSocket", code: 500, userInfo: nil))
             return false
         }
 
@@ -82,11 +80,20 @@ public class WebSocket : NSObject, StreamDelegate {
     public func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
         var state = WebSocketTransition.None
         
+        if( eventCode == .errorOccurred ){
+            let errorCode = aStream.streamError
+            webSocketStateUtils.raiseError(error: "Error in stream occured", code: errorCode!)
+            changeState(.Idle, currentUrl!)
+            return
+        }
+        
         if aStream == inputStream && eventCode == .endEncountered {
+            state = (currentSate?.streamClosed(stream: aStream))!
             print("inputStream closed")
         }
         
         if aStream == outputStream && eventCode == .endEncountered {
+            state = (currentSate?.streamClosed(stream: aStream))!
             print("outputStream closed")
         }
         

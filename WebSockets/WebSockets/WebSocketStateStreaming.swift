@@ -78,7 +78,7 @@ class WebSocketStateStreaming : WebSocketState{
                 webSocketStateUtils?.raiseTextMessage(message: message)
             }
             else {
-                webSocketStateUtils?.raiseError(error: "Unexpected error while trying to decode message.")
+                webSocketStateUtils?.raiseError(error: "Unexpected error while trying to decode message.", code: NSError(domain: "WebSockets", code: 500, userInfo: nil))
             }
         }
     }
@@ -147,12 +147,13 @@ class WebSocketStateStreaming : WebSocketState{
     
     private func receivedClose() {
         let payloadLen = webSocketFrame[1]
+        var reason : UInt16 = 0
+
         if( payloadLen > 0 ){
             let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
-            var u16 : UInt16 = 0
-            dataBytes.getBytes(&u16, length: 2)
-            u16 = u16.byteSwapped
-            debugPrint("Close Reason: ", u16)
+            dataBytes.getBytes(&reason, length: 2)
+            reason = reason.byteSwapped
+            debugPrint("Close Reason: ", reason)
         }
         
         if let os = outputStream {
@@ -162,6 +163,26 @@ class WebSocketStateStreaming : WebSocketState{
             webSocketStateUtils?.closeStream(os)
         }
         
-        webSocketStateUtils?.raiseClose()
+        webSocketStateUtils?.raiseClose(reason: getReasonString(reason: reason))
+    }
+    
+    private func getReasonString(reason code : UInt16) ->String {
+        var reasonMessage = "No reason given."
+        switch code {
+        case 1000:
+            reasonMessage = "Clean close"
+            break
+        default:
+            break
+        }
+        
+        return reasonMessage
+    }
+    
+    func streamClosed(stream s: Stream) ->WebSocketTransition {
+        webSocketStateUtils?.closeStream(s)
+        webSocketStateUtils?.raiseError(error: "Unexpected Close during streaming.", code: NSError(domain: "WebSockets", code: -1, userInfo: nil))
+        
+        return .Idle
     }
 }

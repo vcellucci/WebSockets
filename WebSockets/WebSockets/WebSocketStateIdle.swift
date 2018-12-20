@@ -9,9 +9,7 @@
 import Foundation
 class  WebSocketStateIdle: WebSocketState {
     var inputStream: InputStream?
-    
     var outputStream: OutputStream?
-    
     var url: URL?
     
     var webSocketStateUtils: WebSocketStateUtils?
@@ -34,6 +32,9 @@ class  WebSocketStateIdle: WebSocketState {
     
     func enter() {
         debugPrint("Websocket is now idle...")
+    }
+    func streamClosed(stream s: Stream) ->WebSocketTransition {
+        return .None
     }
     
     
