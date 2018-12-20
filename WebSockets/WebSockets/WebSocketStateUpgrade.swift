@@ -85,7 +85,16 @@ class WebSocketStateUpgrade : WebSocketState {
             requestString += "Connection: Upgrade\r\n"
             requestString += "Origin: ws://echo.websocket.org\r\n"
             requestString += "Sec-WebSocket-Version: 13\r\n"
-            requestString += "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n"
+            requestString += "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+            
+            if let headers = webSocketStateUtils?.additionalHeaders {
+                for( key, value ) in headers {
+                    requestString += key + ": " + value + "\r\n"
+                }
+            }
+            
+            requestString += "\r\n"
+            
             print(requestString)
             return requestString
         }

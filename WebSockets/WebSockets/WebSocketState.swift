@@ -21,6 +21,7 @@ class WebSocketStateUtils {
     var didConnect : (()->())?
     var didReceiveMessage : ((String)->())?
     var didReceiveBinary : ((ArraySlice<UInt8>)->())?
+    var additionalHeaders = [String:String]()
     
     func raiseError(error msg : String ){
         debugPrint(msg)
