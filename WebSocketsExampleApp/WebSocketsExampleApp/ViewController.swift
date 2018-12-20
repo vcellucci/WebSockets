@@ -47,6 +47,8 @@ class ViewController: UIViewController {
             print("Closed")
         }
         
+        webSocket.additionalHeaders = ["Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
+
         if(!webSocket.open(location: "wss://echo.websocket.org")){
             print("Failed to open")
         }
