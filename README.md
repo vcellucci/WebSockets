@@ -41,12 +41,13 @@ There is a websocket test service written in nodejs to test connection.  To run 
     }
     
     webSocket.didReceiveError = {
-        (message) in
-        print("Receved error: ", message)
+        (message, code) in
+        print("Receved error: ", message, " code = ", code.localizedDescription)
     }
     
     webSocket.didClose = {
-        print("Closed")
+        (reason) in
+        print("Closed because; ", reason)
     }
 ```
 
@@ -90,12 +91,13 @@ class ViewController: UIViewController {
         }
         
         webSocket.didReceiveError = {
-            (message) in
-            print("Receved error: ", message)
+            (message, code) in
+            print("Receved error: ", message, " code = ", code.localizedDescription)
         }
         
         webSocket.didClose = {
-            print("Closed")
+            (reason) in
+            print("Closed because; ", reason)
         }
 
         webSocket.additionalHeaders = ["Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
