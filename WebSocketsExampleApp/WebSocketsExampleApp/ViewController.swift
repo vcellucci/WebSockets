@@ -47,7 +47,7 @@ class ViewController: UIViewController {
             print("Closed")
         }
         
-        if(!webSocket.open(location: "ws://echo.websocket.org")){
+        if(!webSocket.open(location: "wss://echo.websocket.org")){
             print("Failed to open")
         }
     }

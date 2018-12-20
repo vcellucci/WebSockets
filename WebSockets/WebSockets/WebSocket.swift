@@ -43,9 +43,14 @@ public class WebSocket : NSObject, StreamDelegate {
             return false
         }
         
+       
+        
         changeState(.Upgrade, currentUrl!)
         
         func openStream( _ stream : Stream ) {
+            if secure {
+                stream.setProperty(StreamSocketSecurityLevel.tlSv1, forKey: .socketSecurityLevelKey)
+            }
             stream.delegate = self
             stream.schedule(in: .main, forMode: .default)
             stream.open()
@@ -65,6 +70,7 @@ public class WebSocket : NSObject, StreamDelegate {
                 }
                 
                 if( scheme == "wss" ){
+                    secure = true
                     return 443
                 }
             }
