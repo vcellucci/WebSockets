@@ -18,14 +18,6 @@ class WebSocketStateStreaming : WebSocketState{
     private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: (1024*64)+8)
     private var currentFrameSize = 0
     
-    enum WebsocketOpCode : UInt8 {
-        case TextFrame = 0x1
-        case BinaryFrame = 0x2
-        case Close = 0x8
-        case Ping = 0x9
-        case Pong = 0xa
-    }
-    
     func enter() {
         webSocketStateUtils?.raiseConnect()
     }

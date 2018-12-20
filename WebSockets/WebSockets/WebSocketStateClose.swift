@@ -13,10 +13,31 @@ class WebSocketStateClose: WebSocketState {
     var outputStream: OutputStream?
     var url: URL?
     var webSocketStateUtils: WebSocketStateUtils?
-    
     var sentClose = false
     
     func didReceiveData() -> WebSocketTransition {
+        debugPrint("Received something while in close.")
+        if let os = outputStream {
+            webSocketStateUtils?.closeStream(os)
+        }
+        
+        if let ins = inputStream {
+            let webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: 8)
+            let bytesRead = ins.read(webSocketFrame, maxLength: 8)
+            if( bytesRead >= 2 ){
+                let opcode = webSocketFrame[0] & 0x0f
+                
+                if( opcode == WebsocketOpCode.Close.rawValue) {
+                    webSocketStateUtils?.raiseClose()
+                }
+                
+                let payloadLen = webSocketFrame[1]
+                if( payloadLen > 0 ){
+                    debugPrint("Sent a resson?")
+                }
+            }
+            webSocketStateUtils?.closeStream(ins)
+        }
         return .None
     }
     
@@ -33,6 +54,10 @@ class WebSocketStateClose: WebSocketState {
     }
     
     func enter() {
+        // send close here
+        let closeFrame : [UInt8] = [0x88, 0x0]
+        if let os = outputStream {
+            os.write(UnsafePointer<UInt8>(closeFrame), maxLength: 2)
+        }
     }
-
 }

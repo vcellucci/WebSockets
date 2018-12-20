@@ -81,6 +81,15 @@ public class WebSocket : NSObject, StreamDelegate {
     
     public func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
         var state = WebSocketTransition.None
+        
+        if aStream == inputStream && eventCode == .endEncountered {
+            print("inputStream closed")
+        }
+        
+        if aStream == outputStream && eventCode == .endEncountered {
+            print("outputStream closed")
+        }
+        
         if( aStream == outputStream && eventCode == .hasSpaceAvailable ){
             state = (currentSate?.canWriteData())!
         }

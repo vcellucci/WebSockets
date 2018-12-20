@@ -15,6 +15,14 @@ enum WebSocketTransition {
     case Close
 }
 
+enum WebsocketOpCode : UInt8 {
+    case TextFrame = 0x1
+    case BinaryFrame = 0x2
+    case Close = 0x8
+    case Ping = 0x9
+    case Pong = 0xa
+}
+
 class WebSocketStateUtils {
     var didReceiveError: ((String)->())?
     var didClose: (()->())?
@@ -31,14 +39,12 @@ class WebSocketStateUtils {
     }
     
     func raiseClose() {
-        debugPrint("Clean close.")
         if let didCloseCallback = didClose {
             didCloseCallback()
         }
     }
     
     func raiseConnect() {
-        debugPrint("Connected.")
         if let didConnectCallback = didConnect {
             didConnectCallback()
         }
@@ -54,6 +60,11 @@ class WebSocketStateUtils {
         if let didReceiveBinaryCallback = didReceiveBinary {
             didReceiveBinaryCallback(bytes)
         }
+    }
+    
+    func closeStream(_ stream : Stream ){
+        stream.remove(from: .main, forMode: .default)
+        stream.close()
     }
 }
 
