@@ -8,7 +8,7 @@ This Websocket Framework is aimed at providing a swift implementation of the Web
 ### TODO:
 1. Implement Fragmented messages
 2. Implement Ping
-3. Add resilant error handling
+3. Add better error handling
 
 ### Getting Started
 
