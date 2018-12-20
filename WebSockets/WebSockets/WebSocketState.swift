@@ -13,6 +13,7 @@ enum WebSocketTransition {
     case Upgrade
     case Streaming
     case Close
+    case Idle
 }
 
 enum WebsocketOpCode : UInt8 {

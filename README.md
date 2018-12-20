@@ -8,12 +8,14 @@ This Websocket Framework is aimed at providing a swift implementation of the Web
 ### TODO:
 1. Implement Fragmented messages
 2. Implement Ping
-3. Implement Clean closure
+3. Add resilant error handling
 
 ### Getting Started
 
 The websocket framework will do its best to determine if it's a secure socket.  by passing `wss://` as the location, it will
 automatically pick TlSv1.  If for some reason, this is not possible, then set the member `secure` to true.
+
+There is a websocket test service written in nodejs to test connection.  To run `npm install` then `node main.js`
 
 1. Add the Framework as an embedded binary to your app
 2. This framework uses callbacks instead of a protocol for finer grain usage

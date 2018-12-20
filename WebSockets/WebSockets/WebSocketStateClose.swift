@@ -13,7 +13,6 @@ class WebSocketStateClose: WebSocketState {
     var outputStream: OutputStream?
     var url: URL?
     var webSocketStateUtils: WebSocketStateUtils?
-    var sentClose = false
     
     func didReceiveData() -> WebSocketTransition {
         debugPrint("Received something while in close.")
@@ -36,9 +35,10 @@ class WebSocketStateClose: WebSocketState {
                     debugPrint("Sent a resson?")
                 }
             }
+            webSocketFrame.deallocate()
             webSocketStateUtils?.closeStream(ins)
         }
-        return .None
+        return .Idle
     }
     
     func canWriteData() -> WebSocketTransition {
@@ -50,6 +50,7 @@ class WebSocketStateClose: WebSocketState {
     }
     
     func send(bytes data: [UInt8], binary isBinary: Bool) -> WebSocketTransition {
+        debugPrint("Warning: Can't write data when closing.")
         return .None
     }
     

@@ -25,26 +25,28 @@ class WebSocketStateStreaming : WebSocketState{
     func didReceiveData() -> WebSocketTransition {
         var transition : WebSocketTransition = .None
         if let ins = inputStream {
-            ins.read(webSocketFrame, maxLength: ((1024*64) + 8))
-            let opcode = webSocketFrame[0] & 0x0f
-            
-            switch WebsocketOpCode(rawValue: opcode) {
-            case .some(.TextFrame):
-                debugPrint("TextFrame data available")
-                readData(false)
-                break
-            case .some(.BinaryFrame):
-                readData(true)
-                break
-            case .some(.Ping):
-                //pong()
-                break
-            case .some(.Close):
-                receivedClose()
-                transition = .Close
-                break
-            default:
-                break
+            let bytesRead = ins.read(webSocketFrame, maxLength: ((1024*64) + 8))
+            if( bytesRead > 0 ){
+                let opcode = webSocketFrame[0] & 0x0f
+                
+                switch WebsocketOpCode(rawValue: opcode) {
+                case .some(.TextFrame):
+                    debugPrint("TextFrame data available")
+                    readData(false)
+                    break
+                case .some(.BinaryFrame):
+                    readData(true)
+                    break
+                case .some(.Ping):
+                    //pong()
+                    break
+                case .some(.Close):
+                    receivedClose()
+                    transition = .Idle
+                    break
+                default:
+                    break
+                }
             }
         }
         return transition
@@ -143,13 +145,21 @@ class WebSocketStateStreaming : WebSocketState{
         debugPrint("Sent bytes:", bytesSent!)
     }
     
-    private func receivedClose(){
-        if let ins = inputStream {
-            ins.close()
+    private func receivedClose() {
+        let payloadLen = webSocketFrame[1]
+        if( payloadLen > 0 ){
+            let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
+            var u16 : UInt16 = 0
+            dataBytes.getBytes(&u16, length: 2)
+            u16 = u16.byteSwapped
+            debugPrint("Close Reason: ", u16)
         }
         
         if let os = outputStream {
-            os.close()
+            // echo back close
+            let closeFrame : [UInt8] = [0x88, 0x0]
+            os.write(UnsafePointer<UInt8>(closeFrame), maxLength: 2)
+            webSocketStateUtils?.closeStream(os)
         }
         
         webSocketStateUtils?.raiseClose()

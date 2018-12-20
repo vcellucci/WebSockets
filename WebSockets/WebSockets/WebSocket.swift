@@ -133,6 +133,10 @@ public class WebSocket : NSObject, StreamDelegate {
         case .Close:
             debugPrint("Changing State to Close")
             currentSate = WebSocketStateClose()
+        case .Idle:
+            debugPrint("Going to idle...")
+            currentSate = WebSocketStateIdle()
+            break
         default:
             break
         }
