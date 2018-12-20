@@ -80,6 +80,12 @@ class WebSocketStateUpgrade : WebSocketState {
         
         func buildRequestString() -> String {
             var requestString = "GET / HTTP/1.1\r\n"
+            if var path = url?.path{
+                if path.isEmpty {
+                    path = "/"
+                }
+                requestString = "GET " + path + " HTTP/1.1\r\n"
+            }
             requestString += "Host: echo.websocket.org\r\n"
             requestString += "Upgrade: websocket\r\n"
             requestString += "Connection: Upgrade\r\n"

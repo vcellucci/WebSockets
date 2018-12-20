@@ -43,20 +43,9 @@ public class WebSocket : NSObject, StreamDelegate {
             webSocketStateUtils.raiseError(error: "Failed to open streams to host: " + url)
             return false
         }
-        
-       
-        
+
         changeState(.Upgrade, currentUrl!)
-        
-        func openStream( _ stream : Stream ) {
-            if secure {
-                stream.setProperty(StreamSocketSecurityLevel.tlSv1, forKey: .socketSecurityLevelKey)
-            }
-            stream.delegate = self
-            stream.schedule(in: .main, forMode: .default)
-            stream.open()
-        }
-        
+    
         openStream(inputStream!)
         openStream(outputStream!)
         
@@ -79,7 +68,15 @@ public class WebSocket : NSObject, StreamDelegate {
             return 80
         }
         return (fullUrl?.port)!
-        
+    }
+    
+    private func openStream( _ stream : Stream ) {
+        if secure {
+            stream.setProperty(StreamSocketSecurityLevel.tlSv1, forKey: .socketSecurityLevelKey)
+        }
+        stream.delegate = self
+        stream.schedule(in: .main, forMode: .default)
+        stream.open()
     }
     
     public func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
@@ -124,6 +121,9 @@ public class WebSocket : NSObject, StreamDelegate {
             debugPrint("Changing state to Streaming.")
             currentSate = WebSocketStateStreaming()
             break
+        case .Close:
+            debugPrint("Changing State to Close")
+            currentSate = WebSocketStateClose()
         default:
             break
         }
@@ -144,6 +144,12 @@ public class WebSocket : NSObject, StreamDelegate {
             if( state != .None ){
                 changeState(state, currentUrl!)
             }
+        }
+    }
+    
+    public func close() {
+        if let url = currentUrl {
+            changeState(.Close, url)
         }
     }
 }
