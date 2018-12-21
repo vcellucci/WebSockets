@@ -13,6 +13,10 @@ class WebSocketStateStreaming : WebSocketState{
     var url: URL?
     var webSocketStateUtils : WebSocketStateUtils?
     var initiatedClose = false
+    var needsMore = false
+    var totalBytesRead  = 0
+    var binary = false
+    var currentPayloadLen = 0
     
     private var bytesSent = 0
     private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: (1024*64)+8)
@@ -25,17 +29,26 @@ class WebSocketStateStreaming : WebSocketState{
     func didReceiveData() -> WebSocketTransition {
         var transition : WebSocketTransition = .None
         if let ins = inputStream {
-            let bytesRead = ins.read(webSocketFrame, maxLength: ((1024*64) + 8))
+            let readBuffer = webSocketFrame.advanced(by: totalBytesRead)
+            let bytesToRead = ((1024*64) + 8) - totalBytesRead
+            let bytesRead = ins.read(readBuffer, maxLength: bytesToRead)
+            if( needsMore ){
+                readData(binary, bytesRead)
+                return .None
+            }
+            debugPrint("Bytes read = ", bytesRead)
             if( bytesRead > 0 ){
                 let opcode = webSocketFrame[0] & 0x0f
                 
                 switch WebsocketOpCode(rawValue: opcode) {
                 case .some(.TextFrame):
                     debugPrint("TextFrame data available")
-                    readData(false)
+                    binary = false
+                    readData(binary, bytesRead)
                     break
                 case .some(.BinaryFrame):
-                    readData(true)
+                    binary = true
+                    readData(binary, bytesRead)
                     break
                 case .some(.Ping):
                     //pong()
@@ -52,7 +65,20 @@ class WebSocketStateStreaming : WebSocketState{
         return transition
     }
     
-    private func readData(_ binary : Bool) {
+    private func readData(_ binary : Bool, _ bytesRead : Int) {
+        
+        if( needsMore ){
+            totalBytesRead += bytesRead
+            if( totalBytesRead < currentPayloadLen ){
+                return
+            }
+            let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(currentPayloadLen)))
+            notifyData(data, binary)
+            needsMore = false
+            totalBytesRead = 0
+            return
+        }
+        
         let payloadLen = webSocketFrame[1]
         if payloadLen < 126 {
             let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by : 2), count: Int(payloadLen)))
@@ -63,6 +89,15 @@ class WebSocketStateStreaming : WebSocketState{
             var u16 : UInt16 = 0
             dataBytes.getBytes(&u16, length: 2)
             u16 = u16.byteSwapped
+            currentPayloadLen = Int(u16)
+            if( bytesRead < currentPayloadLen ){
+                totalBytesRead += bytesRead
+                needsMore = true
+                return
+            } else {
+                totalBytesRead = 0
+                needsMore = false
+            }
             
             let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(u16)))
             notifyData(data, binary)
