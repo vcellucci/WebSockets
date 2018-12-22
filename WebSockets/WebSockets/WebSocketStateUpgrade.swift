@@ -78,36 +78,40 @@ class WebSocketStateUpgrade : WebSocketState {
         
         sendUpgrade = false
         
-        func buildRequestString() -> String {
-            var requestString = "GET / HTTP/1.1\r\n"
-            if var path = url?.path{
-                if path.isEmpty {
-                    path = "/"
-                }
-                requestString = "GET " + path + " HTTP/1.1\r\n"
-            }
-            requestString += "Host: echo.websocket.org\r\n"
-            requestString += "Upgrade: websocket\r\n"
-            requestString += "Connection: Upgrade\r\n"
-            requestString += "Origin: ws://echo.websocket.org\r\n"
-            requestString += "Sec-WebSocket-Version: 13\r\n"
-            requestString += "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            
-            if let headers = webSocketStateUtils?.additionalHeaders {
-                for( key, value ) in headers {
-                    requestString += key + ": " + value + "\r\n"
-                }
-            }
-            
-            requestString += "\r\n"
-            
-            print(requestString)
-            return requestString
-        }
-        
         let requestString = buildRequestString()
         writeString(requestString)
         return .None
+    }
+    
+    func buildRequestString() -> String {
+        var requestString = "GET / HTTP/1.1\r\n"
+        if var path = url?.path{
+            if path.isEmpty {
+                path = "/"
+            }
+            requestString = "GET " + path + " HTTP/1.1\r\n"
+        }
+        requestString += "Host: echo.websocket.org\r\n"
+        requestString += "Upgrade: websocket\r\n"
+        requestString += "Connection: Upgrade\r\n"
+        requestString += "Origin: ws://echo.websocket.org\r\n"
+        requestString += "Sec-WebSocket-Version: 13\r\n"
+        requestString += "Sec-WebSocket-Key: " + generateKey() + "\r\n"
+        
+        if let headers = webSocketStateUtils?.additionalHeaders {
+            for( key, value ) in headers {
+                requestString += key + ": " + value + "\r\n"
+            }
+        }
+        
+        requestString += "\r\n"
+        return requestString
+    }
+    
+    func generateKey() -> String {
+        let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        let key = String((0...15).map{_ in chars.randomElement()!})
+        return Data(key.utf8).base64EncodedString()
     }
     
     func writeString(_ requestString : String) {

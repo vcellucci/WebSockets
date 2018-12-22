@@ -13,23 +13,31 @@ class ViewController: UIViewController {
 
     var webSocket = WebSocket()
     var count = 0
+    @IBOutlet weak var serverAddress: UITextField!
+    @IBOutlet weak var connectButton: UIButton!
+    @IBOutlet weak var closeButton: UIButton!
+    @IBOutlet weak var messageToSend: UITextView!
+    @IBOutlet weak var sendButton: UIButton!
+    @IBOutlet weak var receivedMessage: UITextView!
+    
+  
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        updateUiToClosed()
+        
+        messageToSend.layer.borderWidth = 1
+        receivedMessage.layer.borderWidth = 1
         
         webSocket.didConnect = {
             print("Connected")
-            self.webSocket.sendMessage(string: "Hello, world!")
+            self.updateUiToOpened()
         }
         
         webSocket.didReceiveMessage = {
             (message) in
-            print("Received a message: ", message, " --")
-            if( self.count < 1 ){
-                self.count = 1
-                self.webSocket.sendMessage(string: "blandit libero volutpat sed cras ornare arcu dui vivamus arcu felis bibendum ut tristique et egestas quis ipsum suspendisse ultrices gravida dictum fusce ut placerat orci nulla pellentesque dignissim enim sit amet venenatis urna cursus eget nunc scelerisque viverra mauris in aliquam sem fringilla ut morbi tincidunt augue interdum velit euismod in pellentesque massa placerat duis ultricies lacus sed turpis tincidunt id aliquet risus feugiat in ante metus dictum at tempor commodo ullamcorper a lacus vestibulum sed arcu non odio euismod lacinia at quis risus sed vulputate odio ut enim blandit volutpat maecenas volutpat blandit aliquam etiam erat velit scelerisque in dictum non consectetur a erat nam at lectus urna duis convallis convallis tellus id interdum velit laoreet id donec ultrices tincidunt arcu non sodales neque sodales ut etiam sit amet nisl purus in mollis nunc sed id semper risus in hendrerit gravida rutrum quisque non tellus orci ac auctor augue mauris augue neque gravida in fermentum et sollicitudin ac orci phasellus egestas tellus rutrum tellus pellentesque eu tincidunt tortor aliquam nulla facilisi cras fermentum odio eu feugiat pretium nibh ipsum consequat nisl vel pretium lectus quam id leo in vitae turpis massa sed elementum tempus egestas sed sed risus pretium quam vulputate dignissim suspendisse in est ante in nibh mauris cursus mattis molestie a iaculis at erat pellentesque adipiscing commodo elit at imperdiet dui accumsan sit amet nulla facilisi morbi tempus iaculis urna id volutpat lacus laoreet non curabitur gravida arcu ac tortor dignissim convallis aenean et tortor at risus viverra adipiscing at in tellus")
-            }
+            self.receivedMessage.text = message
         }
         
         webSocket.didReceiveBinary = {
@@ -40,18 +48,54 @@ class ViewController: UIViewController {
         webSocket.didReceiveError = {
             (message, code) in
             print("Receved error: ", message, " code = ", code.localizedDescription)
+            self.updateUiToClosed()
         }
         
         webSocket.didClose = {
             (reason) in
             print("Closed because; ", reason)
+            self.updateUiToClosed()
+            
         }
-        
-        webSocket.additionalHeaders = ["Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
+    }
+    
+    private func updateUiToClosed() {
+        closeButton.isEnabled = false
+        sendButton.isEnabled = false
+        messageToSend.isEditable = false
+        connectButton.isEnabled = true
+    }
+    
+    private func updateUiToOpened() {
+        closeButton.isEnabled = true
+        sendButton.isEnabled = true
+        messageToSend.isEditable = true
 
-        if(!webSocket.open(location: "ws://localhost:8080")){
-            print("Failed to open")
+        connectButton.isEnabled = false
+    }
+    
+    @IBAction func onConnect(_ sender: UIButton) {
+        if let host = serverAddress.text {
+            connectButton.isEnabled = false
+            webSocket.additionalHeaders = ["Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
+            
+            if(!webSocket.open(location: host)){
+                print("Failed to open")
+            }
         }
+    }
+    
+    @IBAction func onSend(_ sender: UIButton) {
+        if let message = messageToSend.text {
+            if !message.isEmpty {
+                webSocket.sendMessage(string: message)
+            }
+        }
+    }
+    
+    @IBAction func onClose(_ sender: UIButton) {
+        closeButton.isEnabled = false
+        webSocket.close()
     }
 }
 

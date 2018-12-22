@@ -28,10 +28,9 @@ public class WebSocket : NSObject, StreamDelegate {
     public func open(location url : String) -> Bool {
         
         currentUrl = URL(string: url)
-        // ws://echo.websocket.org
-        if( currentUrl?.host == nil ){
-            webSocketStateUtils.raiseError(error : "Host cannot be nil", code: NSError(domain: "WebSocket", code: 500, userInfo: nil))
-            return false;
+        
+        if( !validateUrl() ){
+            return false
         }
         
         Stream.getStreamsToHost(withName: (currentUrl?.host)!, port: getPort(currentUrl), inputStream: &inputStream, outputStream: &outputStream)
@@ -48,6 +47,33 @@ public class WebSocket : NSObject, StreamDelegate {
         openStream(outputStream!)
         
         return true;
+    }
+    
+    private func validateUrl() -> Bool {
+        if( !validateScheme() ){
+            return false
+        }
+        
+        if( currentUrl?.host == nil ){
+            webSocketStateUtils.raiseError(error : "Host cannot be nil", code: NSError(domain: "WebSocket", code: 500, userInfo: nil))
+            return false;
+        }
+        
+        return true
+    }
+    
+    private func validateScheme() -> Bool {
+        if let scheme = currentUrl?.scheme {
+            if( !(scheme == "ws" || scheme == "wss")){
+                webSocketStateUtils.raiseError(error: "Scheme must be ws or wss", code: NSError(domain: "WebSocket", code: -1, userInfo: nil))
+                return false
+            }
+        }
+        else {
+            webSocketStateUtils.raiseError(error: "Scheme must be ws or wss", code: NSError(domain: "WebSocket", code: -1, userInfo: nil))
+            return false
+        }
+        return true
     }
     
     private func getPort(_ fullUrl : URL? ) -> Int {
@@ -168,6 +194,7 @@ public class WebSocket : NSObject, StreamDelegate {
     }
     
     public func close() {
+        debugPrint("WebSocket.Close")
         if let url = currentUrl {
             changeState(.Close, url)
         }
