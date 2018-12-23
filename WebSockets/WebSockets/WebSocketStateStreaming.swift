@@ -17,9 +17,10 @@ class WebSocketStateStreaming : WebSocketState {
     var totalBytesRead  = 0
     var binary = false
     var currentPayloadLen = 0
+    static let maxSize : Int = ((1024*64)+9)
     
     private var bytesSent = 0
-    private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: (1024*64)+8)
+    private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSize)
     private var currentFrameSize = 0
     
     func enter() {
@@ -30,7 +31,7 @@ class WebSocketStateStreaming : WebSocketState {
         var transition : WebSocketTransition = .None
         if let ins = inputStream {
             let readBuffer = webSocketFrame.advanced(by: totalBytesRead)
-            let bytesToRead = ((1024*64) + 8) - totalBytesRead
+            let bytesToRead = WebSocketStateStreaming.maxSize - totalBytesRead
             let bytesRead = ins.read(readBuffer, maxLength: bytesToRead)
             if( needsMore ){
                 readData(binary, bytesRead)

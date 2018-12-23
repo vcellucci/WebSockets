@@ -22,13 +22,8 @@ public class WebSocket : NSObject, StreamDelegate {
     private var webSocketStateUtils = WebSocketStateUtils()
     private var inputStream : InputStream?
     private var outputStream : OutputStream?
-    private var currentSate : WebSocketState?
+    private var currentSate : WebSocketState = WebSocketStateIdle()
     private var currentUrl : URL?
-    
-    public override init() {
-        super.init()
-        currentSate = WebSocketStateIdle()
-    }
     
     // Opens an endpoint and begins the upgrade process, the socket is not yet connected.
     public func open(location url : String) -> Bool {
@@ -119,24 +114,24 @@ public class WebSocket : NSObject, StreamDelegate {
         }
         
         if aStream == inputStream && eventCode == .endEncountered {
-            state = (currentSate?.streamClosed(stream: aStream))!
+            state = (currentSate.streamClosed(stream: aStream))
             print("inputStream closed")
         }
         
         if aStream == outputStream && eventCode == .endEncountered {
-            state = (currentSate?.streamClosed(stream: aStream))!
+            state = (currentSate.streamClosed(stream: aStream))
             print("outputStream closed")
         }
         
         if( aStream == outputStream && eventCode == .hasSpaceAvailable ){
-            state = (currentSate?.canWriteData())!
+            state = (currentSate.canWriteData())
         }
         
         if( aStream == inputStream && eventCode == .hasBytesAvailable ){
-            state = (currentSate?.didReceiveData())!
+            state = (currentSate.didReceiveData())
         }
         
-        if( state != .None && state != currentSate?.getState()){
+        if( state != .None && state != currentSate.getState()){
             changeState(state, currentUrl!)
         }
     }
@@ -152,11 +147,11 @@ public class WebSocket : NSObject, StreamDelegate {
         webSocketStateUtils.additionalHeaders = additionalHeaders
         webSocketStateUtils.didReceivePong = didReceivePong
    
-        currentSate?.webSocketStateUtils = webSocketStateUtils
-        currentSate?.inputStream  = inputStream
-        currentSate?.outputStream = outputStream
-        currentSate?.url = url
-        currentSate?.enter()
+        currentSate.webSocketStateUtils = webSocketStateUtils
+        currentSate.inputStream  = inputStream
+        currentSate.outputStream = outputStream
+        currentSate.url = url
+        currentSate.enter()
     }
     
     fileprivate func createState(_ state: WebSocketTransition) {
@@ -191,12 +186,11 @@ public class WebSocket : NSObject, StreamDelegate {
     }
     
     private func sendData(bytes data: [UInt8], binary : Bool){
-        let result = currentSate?.send(bytes: data, binary: binary)
-        if let state = result {
-            if( state != .None ){
-                changeState(state, currentUrl!)
+        let result = currentSate.send(bytes: data, binary: binary)
+            if( result != .None ){
+                changeState(result, currentUrl!)
             }
-        }
+        
     }
     
     public func close() {
@@ -208,8 +202,6 @@ public class WebSocket : NSObject, StreamDelegate {
     
     public func sendPing() {
         debugPrint("Sending ping")
-        if let state = currentSate {
-            state.ping()
-        }
+        currentSate.ping()
     }
 }
