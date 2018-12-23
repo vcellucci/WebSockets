@@ -9,8 +9,7 @@ Please note that this project is still under development and can introduce break
 
 ### TODO:
 1. Implement Fragmented messages
-2. Implement Ping
-3. Add better error handling
+2. Implement Ping (in progress )
 
 ### Getting Started
 
