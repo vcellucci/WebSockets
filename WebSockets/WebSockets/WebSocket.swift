@@ -24,9 +24,13 @@ public class WebSocket : NSObject, StreamDelegate {
     private var currentSate : WebSocketState?
     private var currentUrl : URL?
     
+    public override init() {
+        super.init()
+        currentSate = WebSocketStateIdle()
+    }
+    
     // Opens an endpoint and begins the upgrade process, the socket is not yet connected.
     public func open(location url : String) -> Bool {
-        
         currentUrl = URL(string: url)
         
         if( !validateUrl() ){
@@ -197,6 +201,13 @@ public class WebSocket : NSObject, StreamDelegate {
         debugPrint("WebSocket.Close")
         if let url = currentUrl {
             changeState(.Close, url)
+        }
+    }
+    
+    public func sendPing() {
+        debugPrint("Sending ping")
+        if let state = currentSate {
+            currentSate?.ping()
         }
     }
 }

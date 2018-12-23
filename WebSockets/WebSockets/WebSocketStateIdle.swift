@@ -33,8 +33,13 @@ class  WebSocketStateIdle: WebSocketState {
     func enter() {
         debugPrint("Websocket is now idle...")
     }
+    
     func streamClosed(stream s: Stream) ->WebSocketTransition {
         return .None
+    }
+    
+    func ping() {
+        debugPrint("Warning, Sending ping while idle")
     }
     
     

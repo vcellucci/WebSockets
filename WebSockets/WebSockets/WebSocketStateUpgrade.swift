@@ -129,4 +129,12 @@ class WebSocketStateUpgrade : WebSocketState {
         return .Idle
     }
     
+    func ping () {
+        debugPrint("Warning, Handshake not complete, ping not sent")
+    }
+    
+    deinit {
+        buffer.deallocate()
+    }
+    
 }

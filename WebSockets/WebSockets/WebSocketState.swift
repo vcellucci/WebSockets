@@ -82,4 +82,5 @@ protocol WebSocketState {
     func send(bytes data : [UInt8], binary isBinary : Bool) -> WebSocketTransition
     func enter()
     func streamClosed(stream s : Stream) -> WebSocketTransition
+    func ping()
 }

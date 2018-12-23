@@ -227,4 +227,12 @@ class WebSocketStateStreaming : WebSocketState{
         
         return .Idle
     }
+    
+    func ping() {
+        
+    }
+    
+    deinit {
+        webSocketFrame.deallocate()
+    }
 }

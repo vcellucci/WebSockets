@@ -60,4 +60,8 @@ class WebSocketStateClose: WebSocketState {
     func streamClosed(stream s: Stream) ->WebSocketTransition {
         return .None
     }
+    
+    func ping() {
+        debugPrint("Warning, sending ping while closed.  Ignored.")
+    }
 }
