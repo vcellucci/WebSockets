@@ -21,8 +21,6 @@ class ViewController: UIViewController {
     @IBOutlet weak var receivedMessage: UITextView!
     @IBOutlet weak var pingButton: UIButton!
     
-  
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -60,7 +58,6 @@ class ViewController: UIViewController {
             (reason) in
             print("Closed because; ", reason)
             self.updateUiToClosed()
-            
         }
     }
     
@@ -69,6 +66,7 @@ class ViewController: UIViewController {
         sendButton.isEnabled = false
         messageToSend.isEditable = false
         pingButton.isEnabled = false
+        
         connectButton.isEnabled = true
     }
     

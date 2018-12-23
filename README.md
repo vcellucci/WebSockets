@@ -9,7 +9,6 @@ Please note that this project is still under development and can introduce break
 
 ### TODO:
 1. Implement Fragmented messages
-2. Implement Ping (in progress )
 
 ### Getting Started
 
@@ -61,6 +60,20 @@ Use a standard URL for the location such as `wss://foo.bar:1234/notifications`
         print("Failed to open")
     }
 ```
+
+#### Sending pings
+Websockets supports a ping frame.  The client can send a ping via `.sendPing()` method.  When it receives a pong, the `didReceivePong` method will be called.  View the Example code for an implementation.
+
+``` Swift
+    webSocket.didReceivePong = {
+        self.showPongAlert()
+    }
+
+    // somewhere in code
+    webSocket.sendPing()
+
+```
+In the background, if the server sends a ping, the Framework will return a pong as soon as possible.
 
 #### Putting it all together 
 

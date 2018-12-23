@@ -61,7 +61,7 @@ class WebSocketStateStreaming : WebSocketState {
             receivedPong()
             break
         case .some(.Ping):
-            //pong()
+            pong()
             break
         case .some(.Close):
             receivedClose()
@@ -232,9 +232,17 @@ class WebSocketStateStreaming : WebSocketState {
     }
     
     func ping() {
-        let closeFrame : [UInt8] = [0x89, 0x0]
+        sendCode(code: WebsocketOpCode.Ping.rawValue)
+    }
+    
+    func pong () {
+        sendCode(code: WebsocketOpCode.Pong.rawValue)
+    }
+    
+    func sendCode(code c : UInt8){
         if let os = outputStream {
-            os.write(UnsafePointer<UInt8>(closeFrame), maxLength: 2)
+            let frame : [UInt8] = [c | 0x80, 0x0]
+            os.write(UnsafePointer<UInt8>(frame), maxLength: 2)
         }
     }
     
