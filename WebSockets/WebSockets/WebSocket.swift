@@ -209,7 +209,7 @@ public class WebSocket : NSObject, StreamDelegate {
     public func sendPing() {
         debugPrint("Sending ping")
         if let state = currentSate {
-            currentSate?.ping()
+            state.ping()
         }
     }
 }
