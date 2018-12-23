@@ -20,6 +20,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var sendButton: UIButton!
     @IBOutlet weak var receivedMessage: UITextView!
     @IBOutlet weak var pingButton: UIButton!
+    @IBOutlet weak var generateButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,6 +38,7 @@ class ViewController: UIViewController {
         webSocket.didReceiveMessage = {
             (message) in
             self.receivedMessage.text = message
+            self.receivedMessage.setNeedsDisplay()
         }
         
         webSocket.didReceiveBinary = {
@@ -66,6 +68,7 @@ class ViewController: UIViewController {
         sendButton.isEnabled = false
         messageToSend.isEditable = false
         pingButton.isEnabled = false
+        generateButton.isEnabled = false
         
         connectButton.isEnabled = true
     }
@@ -75,6 +78,7 @@ class ViewController: UIViewController {
         sendButton.isEnabled = true
         messageToSend.isEditable = true
         pingButton.isEnabled = true
+        generateButton.isEnabled = true
 
         connectButton.isEnabled = false
     }
@@ -111,6 +115,34 @@ class ViewController: UIViewController {
     
     @IBAction func onPingButton(_ sender: UIButton) {
         webSocket.sendPing()
+    }
+    
+    @IBAction func onGenerate(_ sender: UIButton) {
+        let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        let message = String((0...34000).map{_ in chars.randomElement()!})
+        messageToSend.text = message
+    }
+    
+    @IBAction func onVerify(_ sender: UIButton) {
+        let sent = messageToSend.text
+        let recv = receivedMessage.text
+        if( sent == recv ){
+            showMessage("Strings match")
+        }
+        else {
+            showMessage("Mistmatched strings.")
+        }
+    }
+    
+    private func showMessage(_ message : String) {
+        let alertController = UIAlertController(title: "Message", message: message, preferredStyle: UIAlertController.Style.alert)
+        alertController.addAction(UIAlertAction(title: "Dismiss", style: UIAlertAction.Style.default, handler: nil))
+        self.present(alertController, animated: true)
+    }
+    
+    @IBAction func onClearMessageToSend(_ sender: UIButton) {
+        messageToSend.text = ""
+        messageToSend.setNeedsDisplay()
     }
 }
 

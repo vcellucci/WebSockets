@@ -46,7 +46,7 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Q65-JX-aew">
-                                <rect key="frame" x="21" y="369" width="36" height="30"/>
+                                <rect key="frame" x="89" y="369" width="36" height="30"/>
                                 <state key="normal" title="Send"/>
                                 <connections>
                                     <action selector="onSend:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Q1W-jF-BX9"/>
@@ -85,24 +85,51 @@
                                     <action selector="onClose:" destination="BYZ-38-t0r" eventType="touchUpInside" id="hxn-uT-QxD"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gXc-Is-ee8">
+                                <rect key="frame" x="16" y="369" width="64" height="30"/>
+                                <state key="normal" title="Generate"/>
+                                <connections>
+                                    <action selector="onGenerate:" destination="BYZ-38-t0r" eventType="touchUpInside" id="cMo-1p-cYy"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uHb-Z1-iBi">
+                                <rect key="frame" x="16" y="597" width="40" height="30"/>
+                                <state key="normal" title="Verify"/>
+                                <connections>
+                                    <action selector="onVerify:" destination="BYZ-38-t0r" eventType="touchUpInside" id="0LE-3V-ZC6"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mN8-qu-LSR">
+                                <rect key="frame" x="134" y="369" width="36" height="30"/>
+                                <state key="normal" title="Clear"/>
+                                <connections>
+                                    <action selector="onClearMessageToSend:" destination="BYZ-38-t0r" eventType="touchUpInside" id="eJ2-g7-auj"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="5g8-qd-cbI" firstAttribute="top" secondItem="w7H-WH-XCo" secondAttribute="bottom" constant="8" symbolic="YES" id="1Ld-6i-M5E"/>
+                            <constraint firstItem="gXc-Is-ee8" firstAttribute="leading" secondItem="uHb-Z1-iBi" secondAttribute="leading" id="3fM-MI-5U7"/>
+                            <constraint firstItem="mN8-qu-LSR" firstAttribute="leading" secondItem="Mpj-d5-zRI" secondAttribute="leading" id="4VH-Zf-r0W"/>
                             <constraint firstItem="z5A-Gb-LI9" firstAttribute="trailing" secondItem="Iws-Ym-8ku" secondAttribute="trailing" id="9lL-Zq-jD7"/>
                             <constraint firstItem="8rm-Dd-4K9" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="29" id="CFW-GI-nzR"/>
+                            <constraint firstItem="gXc-Is-ee8" firstAttribute="baseline" secondItem="Q65-JX-aew" secondAttribute="baseline" id="CpY-nT-FcM"/>
                             <constraint firstItem="uLO-yP-V0z" firstAttribute="top" secondItem="z5A-Gb-LI9" secondAttribute="bottom" constant="8" symbolic="YES" id="Dgg-ob-FPr"/>
                             <constraint firstItem="Mpj-d5-zRI" firstAttribute="leading" secondItem="uLO-yP-V0z" secondAttribute="trailing" constant="59" id="Ece-Kj-Ipy"/>
                             <constraint firstItem="C2y-LC-qjm" firstAttribute="leading" secondItem="Iws-Ym-8ku" secondAttribute="leading" id="Eev-2z-ZH3"/>
                             <constraint firstItem="uLO-yP-V0z" firstAttribute="baseline" secondItem="Mpj-d5-zRI" secondAttribute="baseline" id="IIk-Qa-0xE"/>
+                            <constraint firstItem="uHb-Z1-iBi" firstAttribute="top" secondItem="5g8-qd-cbI" secondAttribute="bottom" constant="8" symbolic="YES" id="Oi2-hF-Ai7"/>
+                            <constraint firstItem="gXc-Is-ee8" firstAttribute="leading" secondItem="Iws-Ym-8ku" secondAttribute="leading" id="PJ4-Dd-zfu"/>
                             <constraint firstItem="w7H-WH-XCo" firstAttribute="leading" secondItem="5g8-qd-cbI" secondAttribute="leading" id="S2A-Mh-vUf"/>
                             <constraint firstItem="w7H-WH-XCo" firstAttribute="top" secondItem="Q65-JX-aew" secondAttribute="bottom" constant="8" symbolic="YES" id="VaO-U6-Bd8"/>
                             <constraint firstItem="Iws-Ym-8ku" firstAttribute="top" secondItem="C2y-LC-qjm" secondAttribute="bottom" constant="8" symbolic="YES" id="WM4-3q-vxF"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="5g8-qd-cbI" secondAttribute="trailing" constant="11" id="WWN-dd-r38"/>
-                            <constraint firstItem="Q65-JX-aew" firstAttribute="leading" secondItem="w7H-WH-XCo" secondAttribute="leading" id="Y9j-hA-enz"/>
+                            <constraint firstItem="Q65-JX-aew" firstAttribute="leading" secondItem="w7H-WH-XCo" secondAttribute="leading" constant="68" id="Y9j-hA-enz"/>
                             <constraint firstItem="8rm-Dd-4K9" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="d65-Vg-c6i"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="5g8-qd-cbI" secondAttribute="bottom" constant="78" id="fur-hY-IyZ"/>
-                            <constraint firstItem="Q65-JX-aew" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="21" id="gvk-GJ-MX9"/>
+                            <constraint firstItem="Q65-JX-aew" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="89" id="gvk-GJ-MX9"/>
+                            <constraint firstItem="mN8-qu-LSR" firstAttribute="baseline" secondItem="Q65-JX-aew" secondAttribute="baseline" id="kiW-7K-kc5"/>
                             <constraint firstItem="WQt-Nx-aec" firstAttribute="baseline" secondItem="Mpj-d5-zRI" secondAttribute="baseline" id="lHk-9F-57a"/>
                             <constraint firstItem="8rm-Dd-4K9" firstAttribute="leading" secondItem="z5A-Gb-LI9" secondAttribute="leading" id="lwt-WL-BiK"/>
                             <constraint firstItem="z5A-Gb-LI9" firstAttribute="top" secondItem="8rm-Dd-4K9" secondAttribute="bottom" constant="8" symbolic="YES" id="mwr-h8-J5b"/>
@@ -118,6 +145,7 @@
                     <connections>
                         <outlet property="closeButton" destination="Mpj-d5-zRI" id="bb0-KJ-NlG"/>
                         <outlet property="connectButton" destination="uLO-yP-V0z" id="3gG-4x-M9l"/>
+                        <outlet property="generateButton" destination="gXc-Is-ee8" id="A1k-Ha-3Rq"/>
                         <outlet property="messageToSend" destination="Iws-Ym-8ku" id="CBh-GP-6tX"/>
                         <outlet property="pingButton" destination="WQt-Nx-aec" id="VvK-S0-dKk"/>
                         <outlet property="receivedMessage" destination="5g8-qd-cbI" id="t0m-Mx-Vpk"/>

@@ -5,8 +5,12 @@ This Websocket Framework is aimed at providing a swift implementation of the Web
 ## Limitations
 1. The websockets only support messsage sizes up to 64K
 
+### In progress:
+1. Implement better logging support
+
 ### TODO:
 1. Implement Fragmented messages
+
 
 ### Getting Started
 
