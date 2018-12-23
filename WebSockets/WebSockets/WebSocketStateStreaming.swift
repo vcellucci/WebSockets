@@ -17,7 +17,11 @@ class WebSocketStateStreaming : WebSocketState {
     var totalBytesRead  = 0
     var binary = false
     var currentPayloadLen = 0
-    static let maxSize : Int = ((1024*64)+9)
+    var currentSendPayloadLen = 0
+    var totalBytesLeftToSend = 0
+    var lastBytesSent = 0
+    var currentHeader = 0
+    static let maxSize : Int = ((1024*64)+16)
     
     private var bytesSent = 0
     private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSize)
@@ -79,17 +83,20 @@ class WebSocketStateStreaming : WebSocketState {
             return
         }
         
+        currentHeader = 0
+        
         let payloadLen = webSocketFrame[1]
         if payloadLen < 126 {
             let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by : 2), count: Int(payloadLen)))
             notifyData(data, binary)
         }
         else if(payloadLen == 126){
+            currentHeader = 4
             let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
             var u16 : UInt16 = 0
             dataBytes.getBytes(&u16, length: 2)
             u16 = u16.byteSwapped
-            currentPayloadLen = Int(u16)
+            currentPayloadLen = Int(u16) + currentHeader
             if( bytesRead < currentPayloadLen ){
                 totalBytesRead += bytesRead
                 needsMore = true
@@ -109,7 +116,7 @@ class WebSocketStateStreaming : WebSocketState {
         if( totalBytesRead < currentPayloadLen ){
             return
         }
-        let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(currentPayloadLen)))
+        let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(currentPayloadLen-currentHeader)))
         notifyData(data, binary)
         needsMore = false
         totalBytesRead = 0
@@ -130,7 +137,8 @@ class WebSocketStateStreaming : WebSocketState {
     }
     
     func canWriteData() -> WebSocketTransition {
-        if let os = outputStream {
+        debugPrint("Can write data.")
+        /*if let os = outputStream {
             var totalSent = bytesSent
             while currentFrameSize > 0 && os.hasSpaceAvailable {
                 let sendData = webSocketFrame.advanced(by: totalSent)
@@ -138,6 +146,18 @@ class WebSocketStateStreaming : WebSocketState {
                 currentFrameSize -= bytesSent
                 totalSent += bytesSent
             }
+            
+            debugPrint("TotalSent: ", totalSent)
+        }*/
+        if let os = outputStream {
+            if currentSendPayloadLen > 0 {
+                let senData = webSocketFrame.advanced(by: lastBytesSent)
+                let bytesSent = os.write(senData, maxLength: currentFrameSize)
+                lastBytesSent = bytesSent
+                totalBytesLeftToSend = currentSendPayloadLen - lastBytesSent
+                currentSendPayloadLen -= lastBytesSent
+            }
+            
         }
         return .None
     }
@@ -147,6 +167,9 @@ class WebSocketStateStreaming : WebSocketState {
     }
     
     func send(bytes data: [UInt8], binary isBinary: Bool) -> WebSocketTransition {
+        if(data.count >= 65536){
+            return .None
+        }
         if( isBinary ){
             sendData(data, WebsocketOpCode.BinaryFrame.rawValue)
         }
@@ -177,6 +200,9 @@ class WebSocketStateStreaming : WebSocketState {
             maskByteStart += 2
         }
         
+        currentSendPayloadLen = payloadLen + headerSize
+
+        
         for ubyte in mask {
             webSocketFrame[maskByteStart] = ubyte
             maskByteStart += 1
@@ -187,7 +213,11 @@ class WebSocketStateStreaming : WebSocketState {
             webSocketFrame[index+maskByteStart] = data[index] ^ mask[index%4]
         }
         
-        let bytesSent = outputStream?.write(webSocketFrame, maxLength: (headerSize + data.count))
+        let bytesSent = outputStream?.write(webSocketFrame, maxLength: currentSendPayloadLen)
+        lastBytesSent = bytesSent!
+        totalBytesLeftToSend = currentSendPayloadLen - lastBytesSent
+        currentSendPayloadLen -= lastBytesSent
+        
         debugPrint("Sent bytes:", bytesSent!)
     }
     
