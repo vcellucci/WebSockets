@@ -138,17 +138,7 @@ class WebSocketStateStreaming : WebSocketState {
     
     func canWriteData() -> WebSocketTransition {
         debugPrint("Can write data.")
-        /*if let os = outputStream {
-            var totalSent = bytesSent
-            while currentFrameSize > 0 && os.hasSpaceAvailable {
-                let sendData = webSocketFrame.advanced(by: totalSent)
-                bytesSent = os.write(sendData, maxLength: currentFrameSize)
-                currentFrameSize -= bytesSent
-                totalSent += bytesSent
-            }
-            
-            debugPrint("TotalSent: ", totalSent)
-        }*/
+       
         if let os = outputStream {
             if currentSendPayloadLen > 0 {
                 let senData = webSocketFrame.advanced(by: lastBytesSent)
