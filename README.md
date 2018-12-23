@@ -2,8 +2,6 @@
 Swift 4.2 WebSockets Framework for iOS.  
 This Websocket Framework is aimed at providing a swift implementation of the Websocket RFC.
 
-Please note that this project is still under development and can introduce breaking changes.
-
 ## Limitations
 1. The websockets only support messsage sizes up to 64K
 
