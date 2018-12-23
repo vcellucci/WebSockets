@@ -19,6 +19,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var messageToSend: UITextView!
     @IBOutlet weak var sendButton: UIButton!
     @IBOutlet weak var receivedMessage: UITextView!
+    @IBOutlet weak var pingButton: UIButton!
     
   
     
@@ -51,6 +52,10 @@ class ViewController: UIViewController {
             self.updateUiToClosed()
         }
         
+        webSocket.didReceivePong = {
+            self.showPongAlert()
+        }
+        
         webSocket.didClose = {
             (reason) in
             print("Closed because; ", reason)
@@ -63,6 +68,7 @@ class ViewController: UIViewController {
         closeButton.isEnabled = false
         sendButton.isEnabled = false
         messageToSend.isEditable = false
+        pingButton.isEnabled = false
         connectButton.isEnabled = true
     }
     
@@ -70,8 +76,15 @@ class ViewController: UIViewController {
         closeButton.isEnabled = true
         sendButton.isEnabled = true
         messageToSend.isEditable = true
+        pingButton.isEnabled = true
 
         connectButton.isEnabled = false
+    }
+    
+    private func showPongAlert() {
+        let alertController = UIAlertController(title: "Pong!", message: "", preferredStyle: UIAlertController.Style.alert)
+        alertController.addAction(UIAlertAction(title: "Dismiss", style: UIAlertAction.Style.default, handler: nil))
+        self.present(alertController, animated: true)
     }
     
     @IBAction func onConnect(_ sender: UIButton) {
@@ -96,6 +109,10 @@ class ViewController: UIViewController {
     @IBAction func onClose(_ sender: UIButton) {
         closeButton.isEnabled = false
         webSocket.close()
+    }
+    
+    @IBAction func onPingButton(_ sender: UIButton) {
+        webSocket.sendPing()
     }
 }
 

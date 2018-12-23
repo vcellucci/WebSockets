@@ -31,7 +31,7 @@ class WebSocketStateUtils {
     var didReceiveMessage : ((String)->())?
     var didReceiveBinary : ((ArraySlice<UInt8>)->())?
     var additionalHeaders = [String:String]()
-    
+    var didReceivePong : (()->())?
     
     func raiseError(error msg : String, code c : Error ){
         debugPrint(msg)
@@ -67,6 +67,12 @@ class WebSocketStateUtils {
     func closeStream(_ stream : Stream ){
         stream.remove(from: .main, forMode: .default)
         stream.close()
+    }
+    
+    func raisePong() {
+        if let didReceivePongCallback = didReceivePong {
+            didReceivePongCallback()
+        }
     }
 }
 

@@ -17,6 +17,7 @@ public class WebSocket : NSObject, StreamDelegate {
     public var didReceiveError : ( (String, Error)->() )?
     public var didClose : ((String)->())?
     public var additionalHeaders  = [String:String]()
+    public var didReceivePong : (()->())?
     
     private var webSocketStateUtils = WebSocketStateUtils()
     private var inputStream : InputStream?
@@ -149,6 +150,7 @@ public class WebSocket : NSObject, StreamDelegate {
         webSocketStateUtils.didReceiveMessage = didReceiveMessage
         webSocketStateUtils.didReceiveBinary = didReceiveBinary
         webSocketStateUtils.additionalHeaders = additionalHeaders
+        webSocketStateUtils.didReceivePong = didReceivePong
    
         currentSate?.webSocketStateUtils = webSocketStateUtils
         currentSate?.inputStream  = inputStream

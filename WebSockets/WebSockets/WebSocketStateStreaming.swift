@@ -7,7 +7,7 @@
 //
 
 import Foundation
-class WebSocketStateStreaming : WebSocketState{
+class WebSocketStateStreaming : WebSocketState {
     var inputStream: InputStream?
     var outputStream: OutputStream?
     var url: URL?
@@ -56,6 +56,9 @@ class WebSocketStateStreaming : WebSocketState{
         case .some(.BinaryFrame):
             binary = true
             readData(binary, bytesRead)
+            break
+        case .some(.Pong):
+            receivedPong()
             break
         case .some(.Ping):
             //pong()
@@ -229,7 +232,14 @@ class WebSocketStateStreaming : WebSocketState{
     }
     
     func ping() {
-        
+        let closeFrame : [UInt8] = [0x89, 0x0]
+        if let os = outputStream {
+            os.write(UnsafePointer<UInt8>(closeFrame), maxLength: 2)
+        }
+    }
+    
+    func receivedPong() {
+        webSocketStateUtils?.raisePong()
     }
     
     deinit {
