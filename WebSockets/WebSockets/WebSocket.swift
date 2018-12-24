@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 public class WebSocket : NSObject, StreamDelegate {
   
@@ -115,12 +116,12 @@ public class WebSocket : NSObject, StreamDelegate {
         
         if aStream == inputStream && eventCode == .endEncountered {
             state = (currentSate.streamClosed(stream: aStream))
-            print("inputStream closed")
+            os_log(.debug,"inputStream closed")
         }
         
         if aStream == outputStream && eventCode == .endEncountered {
             state = (currentSate.streamClosed(stream: aStream))
-            print("outputStream closed")
+            os_log(.debug,"outputStream closed")
         }
         
         if( aStream == outputStream && eventCode == .hasSpaceAvailable ){
@@ -158,17 +159,17 @@ public class WebSocket : NSObject, StreamDelegate {
         switch state {
         case .Upgrade:
             currentSate = WebSocketStateUpgrade()
-            debugPrint("Changing state to Upgrade.")
+            os_log(.debug, "Changing state to Upgrade.")
             break
         case .Streaming:
-            debugPrint("Changing state to Streaming.")
+            os_log(.debug,"Changing state to Streaming.")
             currentSate = WebSocketStateStreaming()
             break
         case .Close:
-            debugPrint("Changing State to Close")
+            os_log(.debug,"Changing State to Close")
             currentSate = WebSocketStateClose()
         case .Idle:
-            debugPrint("Going to idle...")
+            os_log(.debug,"Going to idle...")
             currentSate = WebSocketStateIdle()
             break
         default:
@@ -194,14 +195,14 @@ public class WebSocket : NSObject, StreamDelegate {
     }
     
     public func close() {
-        debugPrint("WebSocket.Close")
+        os_log(.debug,"WebSocket.Close")
         if let url = currentUrl {
             changeState(.Close, url)
         }
     }
     
     public func sendPing() {
-        debugPrint("Sending ping")
+        os_log(.debug,"Sending ping")
         currentSate.ping()
     }
 }

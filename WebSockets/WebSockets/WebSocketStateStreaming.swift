@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import os
+
 class WebSocketStateStreaming : WebSocketState {
     var inputStream: InputStream?
     var outputStream: OutputStream?
@@ -51,22 +53,29 @@ class WebSocketStateStreaming : WebSocketState {
         let opcode = webSocketFrame[0] & 0x0f
         
         switch WebsocketOpCode(rawValue: opcode) {
+        case .some(.Fragment):
+            os_log(.info, "Fragment not supported yet.")
+            break
         case .some(.TextFrame):
-            debugPrint("TextFrame data available")
+            os_log(.debug, "Text Frame received.")
             binary = false
             webSocketFrameReader.readData(binary, bytesRead)
             break
         case .some(.BinaryFrame):
+            os_log(.debug, "Binary Frame received.")
             binary = true
             webSocketFrameReader.readData(binary, bytesRead)
             break
         case .some(.Pong):
+            os_log(.debug, "Pong Frame received.")
             receivedPong()
             break
         case .some(.Ping):
+            os_log(.debug, "Ping Frame received.")
             pong()
             break
         case .some(.Close):
+            os_log(.debug, "Close Frame received.")
             receivedClose()
             transition = .Idle
             break
@@ -76,8 +85,6 @@ class WebSocketStateStreaming : WebSocketState {
     }
     
     func canWriteData() -> WebSocketTransition {
-        debugPrint("Can write data.")
-       
         if let os = outputStream {
             if currentSendPayloadLen > 0 {
                 let senData = webSocketFrame.advanced(by: lastBytesSent)
@@ -147,7 +154,7 @@ class WebSocketStateStreaming : WebSocketState {
         totalBytesLeftToSend = currentSendPayloadLen - lastBytesSent
         currentSendPayloadLen -= lastBytesSent
         
-        debugPrint("Sent bytes:", bytesSent!)
+        os_log(.debug, "Sent bytes: %d", bytesSent!)
     }
     
     private func receivedClose() {
@@ -158,7 +165,8 @@ class WebSocketStateStreaming : WebSocketState {
             let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
             dataBytes.getBytes(&reason, length: 2)
             reason = reason.byteSwapped
-            debugPrint("Close Reason: ", reason)
+            
+            os_log(.debug, "Close Reason: %d", reason)
         }
         
         if let os = outputStream {

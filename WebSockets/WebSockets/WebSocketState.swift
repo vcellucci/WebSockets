@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 enum WebSocketTransition {
     case None
@@ -17,6 +18,7 @@ enum WebSocketTransition {
 }
 
 enum WebsocketOpCode : UInt8 {
+    case Fragment = 0x0
     case TextFrame = 0x1
     case BinaryFrame = 0x2
     case Close = 0x8
@@ -34,7 +36,7 @@ class WebSocketStateUtils {
     var didReceivePong : (()->())?
     
     func raiseError(error msg : String, code c : Error ){
-        debugPrint(msg)
+        os_log(.debug,"%{public}@", msg)
         if let didReceiveErrorCallback = didReceiveError {
             didReceiveErrorCallback(msg, c)
         }

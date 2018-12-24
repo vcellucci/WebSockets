@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import os
+
 class  WebSocketStateIdle: WebSocketState {
     var inputStream: InputStream?
     var outputStream: OutputStream?
@@ -31,7 +33,7 @@ class  WebSocketStateIdle: WebSocketState {
     }
     
     func enter() {
-        debugPrint("Websocket is now idle...")
+        os_log(.debug, "Websocket is now idle...")
     }
     
     func streamClosed(stream s: Stream) ->WebSocketTransition {
@@ -39,7 +41,7 @@ class  WebSocketStateIdle: WebSocketState {
     }
     
     func ping() {
-        debugPrint("Warning, Sending ping while idle")
+        os_log(.info, "Sending ping while idle.  Ping will not be sent.")
     }
     
     

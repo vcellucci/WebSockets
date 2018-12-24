@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 class WebSocketStateClose: WebSocketState {
     var inputStream: InputStream?
@@ -15,7 +16,7 @@ class WebSocketStateClose: WebSocketState {
     var webSocketStateUtils: WebSocketStateUtils?
     
     func didReceiveData() -> WebSocketTransition {
-        debugPrint("Received something while in close.")
+        os_log(.debug, "Received something while in close.")
         if let os = outputStream {
             webSocketStateUtils?.closeStream(os)
         }
@@ -45,7 +46,7 @@ class WebSocketStateClose: WebSocketState {
     }
     
     func send(bytes data: [UInt8], binary isBinary: Bool) -> WebSocketTransition {
-        debugPrint("Warning: Can't write data when closing.")
+        os_log(.info, "Can't write data when closing.")
         return .None
     }
     
@@ -62,6 +63,6 @@ class WebSocketStateClose: WebSocketState {
     }
     
     func ping() {
-        debugPrint("Warning, sending ping while closed.  Ignored.")
+        os_log(.info, "Sending ping while closed.  Ignored.")
     }
 }

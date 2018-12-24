@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os
 
 class WebSocketStateUpgrade : WebSocketState {
     var inputStream: InputStream?
@@ -33,14 +34,14 @@ class WebSocketStateUpgrade : WebSocketState {
                 return .Close
             }
         }
-        debugPrint("Cannot unwrap result from WebSocketStateUpgrade")
+        os_log(.error, "Cannot unwrap result from WebSocketStateUpgrade")
         return .Close
     }
     
     func parse(_ response : String) -> Bool {
         var lines = response.components(separatedBy: "\r\n")
         if( lines.count == 0 ){
-            debugPrint("Invalid respose")
+            os_log(.error, "Invalid respose")
             return false;
         }
         
@@ -55,12 +56,12 @@ class WebSocketStateUpgrade : WebSocketState {
         var words = line.components(separatedBy: " ")
         // get status code
         if( words.count < 2 ){
-            debugPrint("Invalid response, no status code found")
+            os_log(.error, "Invalid response, no status code found")
             return false;
         }
         
         if( words[1] != "101" ){
-            debugPrint("Unexpected status code: ", words[1])
+            os_log(.error, "Unexpected status code: ", words[1])
             return false
         }
         return true;
@@ -120,7 +121,7 @@ class WebSocketStateUpgrade : WebSocketState {
     }
     
     func send(bytes data: [UInt8], binary isBinary: Bool) -> WebSocketTransition {
-        debugPrint("Warning, message sent before handshake finished.  This message will not be sent")
+        os_log(.info, "Message sent before handshake finished.  This message will not be sent")
         return .None
     }
     
@@ -130,7 +131,7 @@ class WebSocketStateUpgrade : WebSocketState {
     }
     
     func ping () {
-        debugPrint("Warning, Handshake not complete, ping not sent")
+        os_log(.info, "Handshake not complete, ping not sent")
     }
     
     deinit {

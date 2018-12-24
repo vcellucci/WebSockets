@@ -8,6 +8,7 @@
 
 import UIKit
 import WebSockets
+import os
 
 class ViewController: UIViewController {
 
@@ -31,7 +32,7 @@ class ViewController: UIViewController {
         receivedMessage.layer.borderWidth = 1
         
         webSocket.didConnect = {
-            print("Connected")
+            os_log("Connected")
             self.updateUiToOpened()
         }
         
@@ -43,12 +44,12 @@ class ViewController: UIViewController {
         
         webSocket.didReceiveBinary = {
             (data) in
-            print("Received binary data")
+            os_log("Received binary data")
         }
         
         webSocket.didReceiveError = {
             (message, code) in
-            print("Receved error: ", message, " code = ", code.localizedDescription)
+            os_log("Receved error: ", message, " code = ", code.localizedDescription)
             self.updateUiToClosed()
         }
         
@@ -58,7 +59,7 @@ class ViewController: UIViewController {
         
         webSocket.didClose = {
             (reason) in
-            print("Closed because; ", reason)
+            os_log("Closed because; ", reason)
             self.updateUiToClosed()
         }
     }
@@ -95,7 +96,7 @@ class ViewController: UIViewController {
             webSocket.additionalHeaders = ["Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"]
             
             if(!webSocket.open(location: host)){
-                print("Failed to open")
+                os_log("Failed to open")
             }
         }
     }
@@ -121,13 +122,11 @@ class ViewController: UIViewController {
         let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         let message = String((0...65534).map{_ in chars.randomElement()!})
         messageToSend.text = message
-        print(message)
     }
     
     @IBAction func onVerify(_ sender: UIButton) {
         let sent = messageToSend.text
         let recv = receivedMessage.text
-        print("rec: ", recv!)
 
         if( sent == recv ){
             showMessage("Strings match")
