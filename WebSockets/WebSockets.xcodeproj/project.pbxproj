@@ -15,6 +15,7 @@
 		B929983A21CA72070089F3C7 /* WebSocketStateStreaming.swift in Sources */ = {isa = PBXBuildFile; fileRef = B929983621CA72070089F3C7 /* WebSocketStateStreaming.swift */; };
 		B929983B21CA72070089F3C7 /* WebSocketStateUpgrade.swift in Sources */ = {isa = PBXBuildFile; fileRef = B929983721CA72070089F3C7 /* WebSocketStateUpgrade.swift */; };
 		B9344B0A21CB3FAB00553C12 /* WebSocketStateClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9344B0921CB3FAB00553C12 /* WebSocketStateClose.swift */; };
+		B947308921D11422002756CC /* WebSocketFrameReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B947308821D11422002756CC /* WebSocketFrameReader.swift */; };
 		B96A79B421CBEE0A004010B5 /* WebSocketStateIdle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96A79B321CBEE0A004010B5 /* WebSocketStateIdle.swift */; };
 		B9AB6F5C21CA7531005E9F2A /* WebSocket.swift in Headers */ = {isa = PBXBuildFile; fileRef = B929983421CA72070089F3C7 /* WebSocket.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
@@ -41,6 +42,7 @@
 		B929983621CA72070089F3C7 /* WebSocketStateStreaming.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocketStateStreaming.swift; sourceTree = "<group>"; };
 		B929983721CA72070089F3C7 /* WebSocketStateUpgrade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocketStateUpgrade.swift; sourceTree = "<group>"; };
 		B9344B0921CB3FAB00553C12 /* WebSocketStateClose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketStateClose.swift; sourceTree = "<group>"; };
+		B947308821D11422002756CC /* WebSocketFrameReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketFrameReader.swift; sourceTree = "<group>"; };
 		B96A79B321CBEE0A004010B5 /* WebSocketStateIdle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketStateIdle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,6 +86,7 @@
 		B929981C21CA71B30089F3C7 /* WebSockets */ = {
 			isa = PBXGroup;
 			children = (
+				B947308821D11422002756CC /* WebSocketFrameReader.swift */,
 				B929983421CA72070089F3C7 /* WebSocket.swift */,
 				B929983521CA72070089F3C7 /* WebSocketState.swift */,
 				B929983621CA72070089F3C7 /* WebSocketStateStreaming.swift */,
@@ -218,6 +221,7 @@
 				B929983821CA72070089F3C7 /* WebSocket.swift in Sources */,
 				B929983A21CA72070089F3C7 /* WebSocketStateStreaming.swift in Sources */,
 				B929983B21CA72070089F3C7 /* WebSocketStateUpgrade.swift in Sources */,
+				B947308921D11422002756CC /* WebSocketFrameReader.swift in Sources */,
 				B96A79B421CBEE0A004010B5 /* WebSocketStateIdle.swift in Sources */,
 				B929983921CA72070089F3C7 /* WebSocketState.swift in Sources */,
 				B9344B0A21CB3FAB00553C12 /* WebSocketStateClose.swift in Sources */,

@@ -12,15 +12,11 @@ class WebSocketStateStreaming : WebSocketState {
     var outputStream: OutputStream?
     var url: URL?
     var webSocketStateUtils : WebSocketStateUtils?
-    var initiatedClose = false
-    var needsMore = false
-    var totalBytesRead  = 0
     var binary = false
-    var currentPayloadLen = 0
     var currentSendPayloadLen = 0
     var totalBytesLeftToSend = 0
     var lastBytesSent = 0
-    var currentHeader = 0
+    var webSocketFrameReader = WebSocketFrameReader()
     static let maxSize : Int = ((1024*64)+16)
     
     private var bytesSent = 0
@@ -29,16 +25,18 @@ class WebSocketStateStreaming : WebSocketState {
     
     func enter() {
         webSocketStateUtils?.raiseConnect()
+        webSocketFrameReader._webSocketFrame = webSocketFrame
+        webSocketFrameReader.webSocketStateUtils = webSocketStateUtils
     }
     
     func didReceiveData() -> WebSocketTransition {
         var transition : WebSocketTransition = .None
         if let ins = inputStream {
-            let readBuffer = webSocketFrame.advanced(by: totalBytesRead)
-            let bytesToRead = WebSocketStateStreaming.maxSize - totalBytesRead
+            let readBuffer = webSocketFrame.advanced(by: webSocketFrameReader.totalBytesRead)
+            let bytesToRead = WebSocketStateStreaming.maxSize - webSocketFrameReader.totalBytesRead
             let bytesRead = ins.read(readBuffer, maxLength: bytesToRead)
-            if( needsMore ){
-                readData(binary, bytesRead)
+            if( webSocketFrameReader.needsMore ){
+                webSocketFrameReader.readData(binary, bytesRead)
                 return .None
             }
             
@@ -56,11 +54,11 @@ class WebSocketStateStreaming : WebSocketState {
         case .some(.TextFrame):
             debugPrint("TextFrame data available")
             binary = false
-            readData(binary, bytesRead)
+            webSocketFrameReader.readData(binary, bytesRead)
             break
         case .some(.BinaryFrame):
             binary = true
-            readData(binary, bytesRead)
+            webSocketFrameReader.readData(binary, bytesRead)
             break
         case .some(.Pong):
             receivedPong()
@@ -74,65 +72,6 @@ class WebSocketStateStreaming : WebSocketState {
             break
         default:
             break
-        }
-    }
-    
-    private func readData(_ binary : Bool, _ bytesRead : Int) {
-        if( needsMore ){
-            handleNeedsMore(bytesRead, binary)
-            return
-        }
-        
-        currentHeader = 0
-        
-        let payloadLen = webSocketFrame[1]
-        if payloadLen < 126 {
-            let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by : 2), count: Int(payloadLen)))
-            notifyData(data, binary)
-        }
-        else if(payloadLen == 126){
-            currentHeader = 4
-            let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
-            var u16 : UInt16 = 0
-            dataBytes.getBytes(&u16, length: 2)
-            u16 = u16.byteSwapped
-            currentPayloadLen = Int(u16) + currentHeader
-            if( bytesRead < currentPayloadLen ){
-                totalBytesRead += bytesRead
-                needsMore = true
-                return
-            } else {
-                totalBytesRead = 0
-                needsMore = false
-            }
-            
-            let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(u16)))
-            notifyData(data, binary)
-        }
-    }
-    
-    fileprivate func handleNeedsMore(_ bytesRead: Int, _ binary: Bool) {
-        totalBytesRead += bytesRead
-        if( totalBytesRead < currentPayloadLen ){
-            return
-        }
-        let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(currentPayloadLen-currentHeader)))
-        notifyData(data, binary)
-        needsMore = false
-        totalBytesRead = 0
-    }
-    
-    private func notifyData(_ arraySlice : ArraySlice<UInt8>, _ binary : Bool) {
-        if( binary ) {
-            webSocketStateUtils?.raiseBinaryMessage(data: arraySlice)
-        }
-        else {
-            if let message = String(bytes: arraySlice, encoding: .utf8) {
-                webSocketStateUtils?.raiseTextMessage(message: message)
-            }
-            else {
-                webSocketStateUtils?.raiseError(error: "Unexpected error while trying to decode message.", code: NSError(domain: "WebSockets", code: 500, userInfo: nil))
-            }
         }
     }
     
