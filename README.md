@@ -1,5 +1,5 @@
 # WebSockets
-Swift 4.2 WebSockets Framework for iOS.  
+Easy to use, no dependencies, Swift 4.2 WebSockets Framework for iOS.  
 This Websocket Framework is aimed at providing a swift implementation of the Websocket RFC.
 
 ## Limitations
