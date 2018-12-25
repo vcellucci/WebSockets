@@ -139,6 +139,10 @@ class ViewController: UIViewController {
     @IBAction func onStream(_ sender: UIButton) {
         if let message = messageToSend.text {
             if !message.isEmpty {
+                if( message.count < 1024 ){
+                    showMessage("Can't stream if less than 16 KB")
+                    return
+                }
                 receivedMessage.text = ""
                 receivedMessage.setNeedsDisplay()
                 let wos = webSocket.openWriteStream(binary: false)
@@ -152,7 +156,6 @@ class ViewController: UIViewController {
                     wos.write(fragment: s)
                 }
                 wos.close()
-                
             }
         }
     }
@@ -168,7 +171,7 @@ class ViewController: UIViewController {
     
     @IBAction func onGenerate(_ sender: UIButton) {
         let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        let message = String((0...32767).map{_ in chars.randomElement()!})
+        let message = String((0...65535).map{_ in chars.randomElement()!})
         messageToSend.text = message
     }
     
