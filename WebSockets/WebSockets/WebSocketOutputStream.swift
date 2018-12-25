@@ -92,8 +92,15 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
             }
             
             // mask
+            /*var dataIndex = data.fir
             for index in 0...data.count-1 {
                 webSocketFrame[index+maskByteStart] = data[index] ^ mask[index%4]
+               
+            }*/
+            var frameIndex = maskByteStart
+            for val in data {
+                webSocketFrame[frameIndex] = val ^ mask[frameIndex%4]
+                frameIndex += 1
             }
             
             let bytesSent = os.write(webSocketFrame, maxLength: totalBytesToSend)

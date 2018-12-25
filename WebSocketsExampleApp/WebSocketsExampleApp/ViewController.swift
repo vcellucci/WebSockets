@@ -143,9 +143,14 @@ class ViewController: UIViewController {
                 receivedMessage.setNeedsDisplay()
                 let wos = webSocket.openWriteStream(binary: false)
                 let data = [UInt8](message.utf8)
-                let s = data[...7]
-                wos.write(fragment: s)
-                wos.write(fragment: s)
+                let chunks = data.count / (1024*16)
+                for i in 0...chunks-1 {
+                    let start = i * (1024*16)
+                    let end   = start + (1024*16)
+                    let s = data[start...end-1]
+                   
+                    wos.write(fragment: s)
+                }
                 wos.close()
                 
             }
@@ -163,7 +168,7 @@ class ViewController: UIViewController {
     
     @IBAction func onGenerate(_ sender: UIButton) {
         let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        let message = String((0...65534).map{_ in chars.randomElement()!})
+        let message = String((0...32767).map{_ in chars.randomElement()!})
         messageToSend.text = message
     }
     

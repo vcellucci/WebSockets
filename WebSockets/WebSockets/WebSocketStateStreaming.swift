@@ -34,6 +34,7 @@ class WebSocketStateStreaming : WebSocketState {
     
     func didReceiveData() -> WebSocketTransition {
         var transition : WebSocketTransition = .None
+        os_log(.debug, "WebSocketStateStreaming: received data.")
         if let ins = inputStream {
             let readBuffer = webSocketFrame.advanced(by: webSocketFrameReader.totalBytesRead)
             let bytesToRead = WebSocketStateStreaming.maxSize - webSocketFrameReader.totalBytesRead

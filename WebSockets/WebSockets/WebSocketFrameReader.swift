@@ -30,14 +30,15 @@ class WebSocketFrameReader {
             
             let fin = webSocketFrame[0] & 0x80
             os_log(.debug, "fin = %d", fin)
-            if( (fin == 128) && (webSocketFrame[0] & 0x0f) != 0){
+            if( ((fin == 128) || (webSocketFrame[0] & 0x0f) != 0)){
                 if let win = webSocketInputStream {
                     if let didClose = win.didClose {
                         didClose()
                     }
                 }
                 webSocketInputStream = nil
-            } else {
+            }
+            else if(fin == 0) {
                 if webSocketInputStream == nil {
                     webSocketInputStream = WebSocketInputStream()
                     webSocketStateUtils?.raiseReceivedStream(webSocketInputStream!)
@@ -61,6 +62,7 @@ class WebSocketFrameReader {
                 if( bytesRead < currentPayloadLen ){
                     totalBytesRead += bytesRead
                     needsMore = true
+                    os_log(.debug, "Need more data")
                     return
                 } else {
                     totalBytesRead = 0
