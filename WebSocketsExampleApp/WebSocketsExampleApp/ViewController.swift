@@ -22,6 +22,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var receivedMessage: UITextView!
     @IBOutlet weak var pingButton: UIButton!
     @IBOutlet weak var generateButton: UIButton!
+    @IBOutlet weak var streamButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,15 +50,15 @@ class ViewController: UIViewController {
         
         webSocket.didReceiveStream = {
             (webSocketInputStream) in
-            var win = webSocketInputStream
+            let win = webSocketInputStream
             win.didReceiveFragment = {
                 (arraySlice) in
+                self.handleStream(win.isBinary, arraySlice)
             }
             
             win.didClose = {
-                (arraySlice) in
+                os_log(.debug, "Received stream closed")
             }
-            
         }
         
         webSocket.didReceiveError = {
@@ -84,6 +85,7 @@ class ViewController: UIViewController {
         messageToSend.isEditable = false
         pingButton.isEnabled = false
         generateButton.isEnabled = false
+        streamButton.isEnabled = false
         
         connectButton.isEnabled = true
     }
@@ -94,8 +96,16 @@ class ViewController: UIViewController {
         messageToSend.isEditable = true
         pingButton.isEnabled = true
         generateButton.isEnabled = true
+        streamButton.isEnabled = true
 
         connectButton.isEnabled = false
+    }
+    
+    private func handleStream(_ binary : Bool, _ arraySlice : ArraySlice<UInt8> ){
+        if !binary {
+            receivedMessage.text += String(bytes: arraySlice, encoding: .utf8)!
+            receivedMessage.setNeedsDisplay()
+        }
     }
     
     private func showPongAlert() {
@@ -116,6 +126,17 @@ class ViewController: UIViewController {
     }
     
     @IBAction func onSend(_ sender: UIButton) {
+        if let message = messageToSend.text {
+            if !message.isEmpty {
+                receivedMessage.text = ""
+                receivedMessage.setNeedsDisplay()
+                webSocket.sendMessage(string: messageToSend.text)
+                
+            }
+        }
+    }
+    
+    @IBAction func onStream(_ sender: UIButton) {
         if let message = messageToSend.text {
             if !message.isEmpty {
                 receivedMessage.text = ""

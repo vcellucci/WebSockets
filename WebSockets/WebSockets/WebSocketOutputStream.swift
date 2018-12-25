@@ -67,6 +67,10 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
                 webSocketFrame[0] = 0
             }
             
+            if isClosed {
+                webSocketFrame[0] |= 0x80
+            }
+            
             let payloadLen =  data.count//message.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)
             if( payloadLen < 126) {
                 webSocketFrame[1] = 0x80 | UInt8(payloadLen)
@@ -98,6 +102,10 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
     }
     
     func close() {
+        if isClosed {
+            return
+        }
+        
         isClosed = true
         if let os = outStream {
             let data : [UInt8] = [0x80, 0x00]
@@ -106,9 +114,7 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
     }
     
     deinit {
-        if !isClosed {
-            os_log(.info, "Warning!!!  Output Stream is going away without a close")
-        }
+        close()
         webSocketFrame.deallocate()
     }
 }

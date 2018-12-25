@@ -7,15 +7,18 @@
 //
 
 import Foundation
+import os
 
 class WebSocketFrameReader {
     var inputStream: InputStream?
     var currentPayloadLen = 0
     var currentHeader = 0
     var totalBytesRead  = 0
+    var raiseNotifications = true
     var needsMore = false
     var _webSocketFrame : UnsafeMutablePointer<UInt8>?
     var webSocketStateUtils : WebSocketStateUtils?
+    var webSocketInputStream : WebSocketInputStream?
     
     func readData(_ binary : Bool, _ bytesRead : Int) {
         
@@ -23,6 +26,22 @@ class WebSocketFrameReader {
             if( needsMore ){
                 handleNeedsMore(webSocketFrame, bytesRead, binary)
                 return
+            }
+            
+            let fin = webSocketFrame[0] & 0x80
+            os_log(.debug, "fin = %d", fin)
+            if( (fin == 128) && (webSocketFrame[0] & 0x0f) != 0){
+                if let win = webSocketInputStream {
+                    if let didClose = win.didClose {
+                        didClose()
+                    }
+                }
+                webSocketInputStream = nil
+            } else {
+                if webSocketInputStream == nil {
+                    webSocketInputStream = WebSocketInputStream()
+                    webSocketStateUtils?.raiseReceivedStream(webSocketInputStream!)
+                }
             }
             
             currentHeader = 0
@@ -60,12 +79,22 @@ class WebSocketFrameReader {
             return
         }
         let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(currentPayloadLen-currentHeader)))
-        notifyData(data, binary)
         needsMore = false
         totalBytesRead = 0
+        
+        notifyData(data, binary)
     }
     
     private func notifyData(_ arraySlice : ArraySlice<UInt8>, _ binary : Bool) {
+        
+        if let win = webSocketInputStream {
+            win.isBinary = binary
+            if let drf = win.didReceiveFragment {
+                drf(arraySlice)
+            }
+            return
+        }
+        
         if( binary ) {
             webSocketStateUtils?.raiseBinaryMessage(data: arraySlice)
         }

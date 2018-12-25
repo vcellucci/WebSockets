@@ -100,10 +100,17 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mN8-qu-LSR">
-                                <rect key="frame" x="134" y="369" width="36" height="30"/>
+                                <rect key="frame" x="200" y="369" width="36" height="30"/>
                                 <state key="normal" title="Clear"/>
                                 <connections>
                                     <action selector="onClearMessageToSend:" destination="BYZ-38-t0r" eventType="touchUpInside" id="eJ2-g7-auj"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wkd-Fg-B5J">
+                                <rect key="frame" x="133" y="369" width="49" height="30"/>
+                                <state key="normal" title="Stream"/>
+                                <connections>
+                                    <action selector="onStream:" destination="BYZ-38-t0r" eventType="touchUpInside" id="X1q-k1-M6t"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -111,14 +118,16 @@
                         <constraints>
                             <constraint firstItem="5g8-qd-cbI" firstAttribute="top" secondItem="w7H-WH-XCo" secondAttribute="bottom" constant="8" symbolic="YES" id="1Ld-6i-M5E"/>
                             <constraint firstItem="gXc-Is-ee8" firstAttribute="leading" secondItem="uHb-Z1-iBi" secondAttribute="leading" id="3fM-MI-5U7"/>
-                            <constraint firstItem="mN8-qu-LSR" firstAttribute="leading" secondItem="Mpj-d5-zRI" secondAttribute="leading" id="4VH-Zf-r0W"/>
+                            <constraint firstItem="mN8-qu-LSR" firstAttribute="leading" secondItem="Mpj-d5-zRI" secondAttribute="leading" constant="66" id="4VH-Zf-r0W"/>
                             <constraint firstItem="z5A-Gb-LI9" firstAttribute="trailing" secondItem="Iws-Ym-8ku" secondAttribute="trailing" id="9lL-Zq-jD7"/>
+                            <constraint firstItem="Wkd-Fg-B5J" firstAttribute="baseline" secondItem="Q65-JX-aew" secondAttribute="baseline" id="BRQ-dV-NiG"/>
                             <constraint firstItem="8rm-Dd-4K9" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="29" id="CFW-GI-nzR"/>
                             <constraint firstItem="gXc-Is-ee8" firstAttribute="baseline" secondItem="Q65-JX-aew" secondAttribute="baseline" id="CpY-nT-FcM"/>
                             <constraint firstItem="uLO-yP-V0z" firstAttribute="top" secondItem="z5A-Gb-LI9" secondAttribute="bottom" constant="8" symbolic="YES" id="Dgg-ob-FPr"/>
                             <constraint firstItem="Mpj-d5-zRI" firstAttribute="leading" secondItem="uLO-yP-V0z" secondAttribute="trailing" constant="59" id="Ece-Kj-Ipy"/>
                             <constraint firstItem="C2y-LC-qjm" firstAttribute="leading" secondItem="Iws-Ym-8ku" secondAttribute="leading" id="Eev-2z-ZH3"/>
                             <constraint firstItem="uLO-yP-V0z" firstAttribute="baseline" secondItem="Mpj-d5-zRI" secondAttribute="baseline" id="IIk-Qa-0xE"/>
+                            <constraint firstItem="Wkd-Fg-B5J" firstAttribute="leading" secondItem="Q65-JX-aew" secondAttribute="trailing" constant="8" symbolic="YES" id="NhK-Fr-ETw"/>
                             <constraint firstItem="uHb-Z1-iBi" firstAttribute="top" secondItem="5g8-qd-cbI" secondAttribute="bottom" constant="8" symbolic="YES" id="Oi2-hF-Ai7"/>
                             <constraint firstItem="gXc-Is-ee8" firstAttribute="leading" secondItem="Iws-Ym-8ku" secondAttribute="leading" id="PJ4-Dd-zfu"/>
                             <constraint firstItem="w7H-WH-XCo" firstAttribute="leading" secondItem="5g8-qd-cbI" secondAttribute="leading" id="S2A-Mh-vUf"/>
@@ -151,6 +160,7 @@
                         <outlet property="receivedMessage" destination="5g8-qd-cbI" id="t0m-Mx-Vpk"/>
                         <outlet property="sendButton" destination="Q65-JX-aew" id="iiP-Ww-fhm"/>
                         <outlet property="serverAddress" destination="z5A-Gb-LI9" id="PQX-Jx-T8A"/>
+                        <outlet property="streamButton" destination="Wkd-Fg-B5J" id="7Zk-ND-I94"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

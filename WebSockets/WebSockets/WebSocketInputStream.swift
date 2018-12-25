@@ -7,8 +7,8 @@
 //
 
 import Foundation
-public protocol WebSocketInputStream {
-    var didReceiveFragment : ((ArraySlice<UInt8>)->())? { get set }
-    var didClose : ((ArraySlice<UInt8>)->())? { get set }
-    var isBinary : Bool { get }
+public class WebSocketInputStream {
+    public var didReceiveFragment : ((ArraySlice<UInt8>)->())?
+    public var didClose : (()->())?
+    public var isBinary = false
 }

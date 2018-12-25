@@ -190,10 +190,9 @@ public class WebSocket : NSObject, StreamDelegate {
     
     private func sendData(bytes data: [UInt8], binary : Bool){
         let result = currentSate.send(bytes: data, binary: binary)
-            if( result != .None ){
-                changeState(result, currentUrl!)
-            }
-        
+        if( result != .None ){
+            changeState(result, currentUrl!)
+        }
     }
     
     public func close() {

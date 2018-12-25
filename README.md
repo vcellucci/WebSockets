@@ -2,11 +2,8 @@
 Easy to use, no dependencies, Swift 4.2 WebSockets Framework for iOS.  
 This Websocket Framework is aimed at providing a swift implementation of the Websocket RFC.
 
-## Limitations
-1. The websockets only support messsage sizes up to 64K
-
-### In progress:
-1. Implement Fragmented messages
+## Constraint
+Message sizes have a limit of 64KB.  However, streaming is supported via Websocket fragments.  See the section Streaming below
 
 ### Getting Started
 
@@ -115,4 +112,8 @@ class ViewController: UIViewController {
         }
     }
 }
+```
+
+#### Streaming
+``` Swift
 ```

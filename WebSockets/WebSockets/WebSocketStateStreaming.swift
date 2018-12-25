@@ -56,7 +56,7 @@ class WebSocketStateStreaming : WebSocketState {
         switch WebsocketOpCode(rawValue: opcode) {
         case .some(.Fragment):
             os_log(.info, "Fragment received.")
-            handleFragment()
+            webSocketFrameReader.readData(binary, bytesRead)
             break
         case .some(.TextFrame):
             os_log(.debug, "Text Frame received.")
@@ -141,7 +141,6 @@ class WebSocketStateStreaming : WebSocketState {
         
         currentSendPayloadLen = payloadLen + headerSize
 
-        
         for ubyte in mask {
             webSocketFrame[maskByteStart] = ubyte
             maskByteStart += 1
@@ -227,11 +226,6 @@ class WebSocketStateStreaming : WebSocketState {
         wsos.outStream = outputStream
         return wsos
     }
-    
-    func handleFragment() {
-        
-    }
-    
     
     deinit {
         webSocketFrame.deallocate()
