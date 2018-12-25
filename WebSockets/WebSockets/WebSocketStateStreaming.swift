@@ -38,7 +38,9 @@ class WebSocketStateStreaming : WebSocketState {
         if let ins = inputStream {
             let readBuffer = webSocketFrame.advanced(by: webSocketFrameReader.totalBytesRead)
             let bytesToRead = WebSocketStateStreaming.maxSize - webSocketFrameReader.totalBytesRead
+            os_log(.debug, "Starting read %d bytes", bytesToRead)
             let bytesRead = ins.read(readBuffer, maxLength: bytesToRead)
+            os_log(.debug, "Read %d bytes", bytesRead)
             if( webSocketFrameReader.needsMore ){
                 webSocketFrameReader.readData(binary, bytesRead)
                 return .None
@@ -53,7 +55,7 @@ class WebSocketStateStreaming : WebSocketState {
     
     fileprivate func dispatch(_ bytesRead: Int, _ transition: inout WebSocketTransition) {
         let opcode = webSocketFrame[0] & 0x0f
-        
+        os_log(.debug, "Opcode is %d", opcode)
         switch WebsocketOpCode(rawValue: opcode) {
         case .some(.Fragment):
             os_log(.info, "Fragment received.")
