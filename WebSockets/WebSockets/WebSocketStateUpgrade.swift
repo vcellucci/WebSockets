@@ -134,6 +134,11 @@ class WebSocketStateUpgrade : WebSocketState {
         os_log(.info, "Handshake not complete, ping not sent")
     }
     
+    func openWriteStream(binary isbinary: Bool) -> WebSocketOutputStream {
+        os_log(.info, "Trying to open an output stream when handshake not complete.")
+        return NilWebSocketOutputStreamImpl()
+    }
+    
     deinit {
         buffer.deallocate()
     }

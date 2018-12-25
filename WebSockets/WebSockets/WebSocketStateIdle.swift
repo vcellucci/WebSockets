@@ -44,5 +44,10 @@ class  WebSocketStateIdle: WebSocketState {
         os_log(.info, "Sending ping while idle.  Ping will not be sent.")
     }
     
+    func openWriteStream(binary isbinary: Bool) -> WebSocketOutputStream {
+        os_log(.info, "Trying to open an output stream in idle state.")
+        return NilWebSocketOutputStreamImpl()
+    }
+    
     
 }

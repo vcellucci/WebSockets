@@ -47,10 +47,24 @@ class ViewController: UIViewController {
             os_log("Received binary data")
         }
         
+        webSocket.didReceiveStream = {
+            (webSocketInputStream) in
+            var win = webSocketInputStream
+            win.didReceiveFragment = {
+                (arraySlice) in
+            }
+            
+            win.didClose = {
+                (arraySlice) in
+            }
+            
+        }
+        
         webSocket.didReceiveError = {
             (message, code) in
-            os_log("Receved error: ", message, " code = ", code.localizedDescription)
-            self.updateUiToClosed()
+                os_log("Receved error: ", message, " code = ", code.localizedDescription)
+                self.updateUiToClosed()
+            
         }
         
         webSocket.didReceivePong = {
@@ -104,7 +118,15 @@ class ViewController: UIViewController {
     @IBAction func onSend(_ sender: UIButton) {
         if let message = messageToSend.text {
             if !message.isEmpty {
-                webSocket.sendMessage(string: message)
+                receivedMessage.text = ""
+                receivedMessage.setNeedsDisplay()
+                let wos = webSocket.openWriteStream(binary: false)
+                let data = [UInt8](message.utf8)
+                let s = data[...7]
+                wos.write(fragment: s)
+                wos.write(fragment: s)
+                wos.close()
+                
             }
         }
     }

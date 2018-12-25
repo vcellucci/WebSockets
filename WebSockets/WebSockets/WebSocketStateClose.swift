@@ -65,4 +65,9 @@ class WebSocketStateClose: WebSocketState {
     func ping() {
         os_log(.info, "Sending ping while closed.  Ignored.")
     }
+    
+    func openWriteStream(binary isbinary: Bool) -> WebSocketOutputStream {
+        os_log(.info, "Trying to open an output stream in closed state.")
+        return NilWebSocketOutputStreamImpl()
+    }
 }

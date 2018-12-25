@@ -19,6 +19,7 @@ public class WebSocket : NSObject, StreamDelegate {
     public var didClose : ((String)->())?
     public var additionalHeaders  = [String:String]()
     public var didReceivePong : (()->())?
+    public var didReceiveStream : ((WebSocketInputStream)->())?
     
     private var webSocketStateUtils = WebSocketStateUtils()
     private var inputStream : InputStream?
@@ -147,6 +148,7 @@ public class WebSocket : NSObject, StreamDelegate {
         webSocketStateUtils.didReceiveBinary = didReceiveBinary
         webSocketStateUtils.additionalHeaders = additionalHeaders
         webSocketStateUtils.didReceivePong = didReceivePong
+        webSocketStateUtils.didReceiveStream = didReceiveStream
    
         currentSate.webSocketStateUtils = webSocketStateUtils
         currentSate.inputStream  = inputStream
@@ -204,5 +206,9 @@ public class WebSocket : NSObject, StreamDelegate {
     public func sendPing() {
         os_log(.debug,"Sending ping")
         currentSate.ping()
+    }
+    
+    public func openWriteStream(binary isbinary: Bool) -> WebSocketOutputStream {
+       return currentSate.openWriteStream(binary: isbinary)
     }
 }

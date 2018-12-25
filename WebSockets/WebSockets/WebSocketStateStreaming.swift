@@ -19,6 +19,7 @@ class WebSocketStateStreaming : WebSocketState {
     var totalBytesLeftToSend = 0
     var lastBytesSent = 0
     var webSocketFrameReader = WebSocketFrameReader()
+    var webSocektInputStream : WebSocketInputStream?
     static let maxSize : Int = ((1024*64)+16)
     
     private var bytesSent = 0
@@ -54,7 +55,8 @@ class WebSocketStateStreaming : WebSocketState {
         
         switch WebsocketOpCode(rawValue: opcode) {
         case .some(.Fragment):
-            os_log(.info, "Fragment not supported yet.")
+            os_log(.info, "Fragment received.")
+            handleFragment()
             break
         case .some(.TextFrame):
             os_log(.debug, "Text Frame received.")
@@ -106,6 +108,7 @@ class WebSocketStateStreaming : WebSocketState {
         if(data.count >= 65536){
             return .None
         }
+        
         if( isBinary ){
             sendData(data, WebsocketOpCode.BinaryFrame.rawValue)
         }
@@ -217,6 +220,18 @@ class WebSocketStateStreaming : WebSocketState {
     func receivedPong() {
         webSocketStateUtils?.raisePong()
     }
+    
+    func openWriteStream(binary isbinary: Bool) -> WebSocketOutputStream {
+        let wsos = WebSocketOutputStreamImpl()
+        wsos.setBinary(binary)
+        wsos.outStream = outputStream
+        return wsos
+    }
+    
+    func handleFragment() {
+        
+    }
+    
     
     deinit {
         webSocketFrame.deallocate()

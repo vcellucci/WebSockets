@@ -16,6 +16,8 @@
 		B929983B21CA72070089F3C7 /* WebSocketStateUpgrade.swift in Sources */ = {isa = PBXBuildFile; fileRef = B929983721CA72070089F3C7 /* WebSocketStateUpgrade.swift */; };
 		B9344B0A21CB3FAB00553C12 /* WebSocketStateClose.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9344B0921CB3FAB00553C12 /* WebSocketStateClose.swift */; };
 		B947308921D11422002756CC /* WebSocketFrameReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B947308821D11422002756CC /* WebSocketFrameReader.swift */; };
+		B947308D21D13D3A002756CC /* WebSocketOutputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = B947308C21D13D3A002756CC /* WebSocketOutputStream.swift */; };
+		B947308F21D27904002756CC /* WebSocketInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = B947308E21D27904002756CC /* WebSocketInputStream.swift */; };
 		B96A79B421CBEE0A004010B5 /* WebSocketStateIdle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96A79B321CBEE0A004010B5 /* WebSocketStateIdle.swift */; };
 		B9AB6F5C21CA7531005E9F2A /* WebSocket.swift in Headers */ = {isa = PBXBuildFile; fileRef = B929983421CA72070089F3C7 /* WebSocket.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
@@ -43,6 +45,8 @@
 		B929983721CA72070089F3C7 /* WebSocketStateUpgrade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSocketStateUpgrade.swift; sourceTree = "<group>"; };
 		B9344B0921CB3FAB00553C12 /* WebSocketStateClose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketStateClose.swift; sourceTree = "<group>"; };
 		B947308821D11422002756CC /* WebSocketFrameReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketFrameReader.swift; sourceTree = "<group>"; };
+		B947308C21D13D3A002756CC /* WebSocketOutputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketOutputStream.swift; sourceTree = "<group>"; };
+		B947308E21D27904002756CC /* WebSocketInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketInputStream.swift; sourceTree = "<group>"; };
 		B96A79B321CBEE0A004010B5 /* WebSocketStateIdle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketStateIdle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -95,6 +99,8 @@
 				B929981E21CA71B30089F3C7 /* Info.plist */,
 				B9344B0921CB3FAB00553C12 /* WebSocketStateClose.swift */,
 				B96A79B321CBEE0A004010B5 /* WebSocketStateIdle.swift */,
+				B947308C21D13D3A002756CC /* WebSocketOutputStream.swift */,
+				B947308E21D27904002756CC /* WebSocketInputStream.swift */,
 			);
 			path = WebSockets;
 			sourceTree = "<group>";
@@ -218,7 +224,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B947308F21D27904002756CC /* WebSocketInputStream.swift in Sources */,
 				B929983821CA72070089F3C7 /* WebSocket.swift in Sources */,
+				B947308D21D13D3A002756CC /* WebSocketOutputStream.swift in Sources */,
 				B929983A21CA72070089F3C7 /* WebSocketStateStreaming.swift in Sources */,
 				B929983B21CA72070089F3C7 /* WebSocketStateUpgrade.swift in Sources */,
 				B947308921D11422002756CC /* WebSocketFrameReader.swift in Sources */,
