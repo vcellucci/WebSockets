@@ -25,7 +25,6 @@ class NilWebSocketOutputStreamImpl : WebSocketOutputStream {
     }
     
     func reset(){
-        
     }
     func close() {
     }
@@ -68,7 +67,7 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
             }
             
             if isClosed {
-                webSocketFrame[0] |= 0x80
+                webSocketFrame[0] = 0x80
             }
             
             let payloadLen =  data.count//message.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)
@@ -91,12 +90,6 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
                 maskByteStart += 1
             }
             
-            // mask
-            /*var dataIndex = data.fir
-            for index in 0...data.count-1 {
-                webSocketFrame[index+maskByteStart] = data[index] ^ mask[index%4]
-               
-            }*/
             var frameIndex = maskByteStart
             for val in data {
                 webSocketFrame[frameIndex] = val ^ mask[frameIndex%4]
@@ -116,7 +109,7 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
         isClosed = true
         if let os = outStream {
             let data : [UInt8] = [0x80, 0x00]
-            os.write(UnsafePointer<UInt8>(data), maxLength: 2)
+            os.write(UnsafePointer<UInt8>(data), maxLength: data.count)
         }
     }
     
