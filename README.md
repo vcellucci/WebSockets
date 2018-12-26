@@ -131,6 +131,8 @@ for i in 0...chunks-1 {
     wos.write(fragment: data[start...end-1])
     totalWritten += (1024*16)
 }
+
+wos.close()
 ```
 
 To Receive a stream, the `WebSocket.didReceiveStream` will called with a `WebSocketInputStream`. Then `WebSocketInputStream.didReceiveFragment` will be called for each fragment. `WebSocketInputStream.didClose` will be called once the stream is closed.
