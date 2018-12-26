@@ -18,75 +18,53 @@ class WebSocketStateStreaming : WebSocketState {
     var currentSendPayloadLen = 0
     var totalBytesLeftToSend = 0
     var lastBytesSent = 0
-    var webSocketFrameReader = WebSocketFrameReader()
+    var frameParser = WebSocketFrameParser()
     var webSocektInputStream : WebSocketInputStream?
     static let maxSize : Int = ((1024*64)+16)
     
     private var bytesSent = 0
     private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSize)
+    private var currentFramData : UnsafeMutablePointer<UInt8>?
     private var currentFrameSize = 0
+    private var spaceLeft = maxSize
     
     func enter() {
         webSocketStateUtils?.raiseConnect()
-        webSocketFrameReader._webSocketFrame = webSocketFrame
-        webSocketFrameReader.webSocketStateUtils = webSocketStateUtils
+        frameParser.webSockStateUtils = webSocketStateUtils
+        frameParser.outputStream = outputStream
+        currentFramData = webSocketFrame.advanced(by: 0)
     }
     
     func didReceiveData() -> WebSocketTransition {
         var transition : WebSocketTransition = .None
         os_log(.debug, "WebSocketStateStreaming: received data.")
         if let ins = inputStream {
-            let readBuffer = webSocketFrame.advanced(by: webSocketFrameReader.totalBytesRead)
-            let bytesToRead = WebSocketStateStreaming.maxSize - webSocketFrameReader.totalBytesRead
-            os_log(.debug, "Starting read %d bytes", bytesToRead)
-            let bytesRead = ins.read(readBuffer, maxLength: bytesToRead)
-            os_log(.debug, "Read %d bytes", bytesRead)
-            if( webSocketFrameReader.needsMore ){
-                webSocketFrameReader.readData(binary, bytesRead)
-                return .None
+            while( ins.hasBytesAvailable ){
+                var toProcess = ins.read(currentFramData!, maxLength: spaceLeft)
+                os_log(.debug, "Bytes read in stream %d", toProcess)
+                while (toProcess > 0) {
+                    let processed = frameParser.parse(buffer: currentFramData!, size: toProcess)
+                    if processed == 0 {
+                        os_log(.debug, "Processed == 0, trying next time...")
+                        break
+                    }
+                    else if processed == toProcess {
+                        os_log(.debug, "Done processing (%d), resetting buffer.", processed)
+                        toProcess = 0
+                        spaceLeft = WebSocketStateStreaming.maxSize
+                        currentFramData =  webSocketFrame.advanced(by: 0)
+                    }
+                    else {
+                        os_log(.debug, "Keep processing...")
+                        toProcess -= processed
+                        currentFramData = webSocketFrame.advanced(by: processed)
+                        spaceLeft -= processed
+                    }
+                }
             }
-            
-            if( bytesRead > 0 ){
-                dispatch(bytesRead, &transition)
-            }
+            transition = frameParser.transition
         }
         return transition
-    }
-    
-    fileprivate func dispatch(_ bytesRead: Int, _ transition: inout WebSocketTransition) {
-        let opcode = webSocketFrame[0] & 0x0f
-        os_log(.debug, "Opcode is %d", opcode)
-        switch WebsocketOpCode(rawValue: opcode) {
-        case .some(.Fragment):
-            os_log(.info, "Fragment received.")
-            webSocketFrameReader.readData(binary, bytesRead)
-            break
-        case .some(.TextFrame):
-            os_log(.debug, "Text Frame received.")
-            binary = false
-            webSocketFrameReader.readData(binary, bytesRead)
-            break
-        case .some(.BinaryFrame):
-            os_log(.debug, "Binary Frame received.")
-            binary = true
-            webSocketFrameReader.readData(binary, bytesRead)
-            break
-        case .some(.Pong):
-            os_log(.debug, "Pong Frame received.")
-            receivedPong()
-            break
-        case .some(.Ping):
-            os_log(.debug, "Ping Frame received.")
-            pong()
-            break
-        case .some(.Close):
-            os_log(.debug, "Close Frame received.")
-            receivedClose()
-            transition = .Idle
-            break
-        default:
-            break
-        }
     }
     
     func canWriteData() -> WebSocketTransition {
@@ -162,41 +140,6 @@ class WebSocketStateStreaming : WebSocketState {
         os_log(.debug, "Sent bytes: %d", bytesSent!)
     }
     
-    private func receivedClose() {
-        let payloadLen = webSocketFrame[1]
-        var reason : UInt16 = 0
-
-        if( payloadLen > 0 ){
-            let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
-            dataBytes.getBytes(&reason, length: 2)
-            reason = reason.byteSwapped
-            
-            os_log(.debug, "Close Reason: %d", reason)
-        }
-        
-        if let os = outputStream {
-            // echo back close
-            let closeFrame : [UInt8] = [0x88, 0x0]
-            os.write(UnsafePointer<UInt8>(closeFrame), maxLength: 2)
-            webSocketStateUtils?.closeStream(os)
-        }
-        
-        webSocketStateUtils?.raiseClose(reason: getReasonString(reason: reason))
-    }
-    
-    private func getReasonString(reason code : UInt16) ->String {
-        var reasonMessage = "No reason given."
-        switch code {
-        case 1000:
-            reasonMessage = "Clean close"
-            break
-        default:
-            break
-        }
-        
-        return reasonMessage
-    }
-    
     func streamClosed(stream s: Stream) ->WebSocketTransition {
         webSocketStateUtils?.closeStream(s)
         webSocketStateUtils?.raiseError(error: "Unexpected Close during streaming.", code: NSError(domain: "WebSockets", code: -1, userInfo: nil))
@@ -206,10 +149,6 @@ class WebSocketStateStreaming : WebSocketState {
     
     func ping() {
         sendCode(code: WebsocketOpCode.Ping.rawValue)
-    }
-    
-    func pong () {
-        sendCode(code: WebsocketOpCode.Pong.rawValue)
     }
     
     func sendCode(code c : UInt8){

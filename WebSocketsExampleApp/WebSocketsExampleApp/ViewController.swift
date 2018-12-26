@@ -39,7 +39,7 @@ class ViewController: UIViewController {
         
         webSocket.didReceiveMessage = {
             (message) in
-            self.receivedMessage.text = message
+            self.receivedMessage.text += message
             self.receivedMessage.setNeedsDisplay()
         }
         
@@ -131,7 +131,10 @@ class ViewController: UIViewController {
                 receivedMessage.text = ""
                 receivedMessage.setNeedsDisplay()
                 webSocket.sendMessage(string: messageToSend.text)
-                
+                webSocket.sendMessage(string: messageToSend.text)
+                webSocket.sendMessage(string: messageToSend.text)
+                webSocket.sendMessage(string: messageToSend.text)
+
             }
         }
     }
