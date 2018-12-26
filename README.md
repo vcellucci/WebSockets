@@ -8,7 +8,7 @@ Message sizes have a limit of 64KB.  However, streaming is supported via Websock
 ### Getting Started
 
 The websocket framework will do its best to determine if it's a secure socket.  by passing `wss://` as the location, it will
-automatically pick TlSv1.  If for some reason, this is not possible, then set the member `secure` to true.
+automatically pick TlSv1.  If for some reason, this is not possible, then set the member `secure` to true. 
 
 1. Add the Framework as an embedded binary to your app
 2. This framework uses callbacks instead of a protocol for finer grain usage
@@ -115,5 +115,44 @@ class ViewController: UIViewController {
 ```
 
 #### Streaming
+Streaming is done through message fragmentation.  To write a stream, the call to `openWriteStream` will return a `WebSocketOutputStream`.  From there, `WebSocketOutputStream.write` can be used
+to write fragments to the websocket. `WebSocketOutputStream.close` can be called once done.   Streaming is great when the size of messages are unknown.  Fragments should not be larger than 16KB.  
+There is future plans to make this value configurable, up to 64KB.
+
+The following code assumes data that is evenly divisible by 16KB and can be partitioned at 16KB chunks.
+
 ``` Swift
+let wos = webSocket.openWriteStream(binary: false)
+let chunks = data.count / (1024*16)
+var totalWritten = 0
+for i in 0...chunks-1 {
+    let start = i * (1024*16)
+    let end   = start + (1024*16)                   
+    wos.write(fragment: data[start...end-1])
+    totalWritten += (1024*16)
+}
+```
+
+To Receive a stream, the `WebSocket.didReceiveStream` will called with a `WebSocketInputStream`. Then `WebSocketInputStream.didReceiveFragment` will be called for each fragment. `WebSocketInputStream.didClose` will be called once the stream is closed.
+
+``` Swift
+webSocket.didReceiveStream = {
+    (webSocketInputStream) in
+    let win = webSocketInputStream
+    win.didReceiveFragment = {
+        (arraySlice) in
+        self.handleStream(win.isBinary, arraySlice)
+    }
+    
+    win.didClose = {
+        os_log(.debug, "Received stream closed")
+    }
+}
+
+func handleStream(_ binary : Bool, _ arraySlice : ArraySlice<UInt8> ){
+    if !binary {
+        receivedMessage.text += String(bytes: arraySlice, encoding: .utf8)!
+        receivedMessage.setNeedsDisplay()
+    }
+}
 ```
