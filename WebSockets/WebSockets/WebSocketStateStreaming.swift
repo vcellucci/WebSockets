@@ -25,14 +25,18 @@ class WebSocketStateStreaming : WebSocketState {
     private var bytesSent = 0
     private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSize)
     private var currentFramData : UnsafeMutablePointer<UInt8>?
+    private var readBuffer : UnsafeMutablePointer<UInt8>?
     private var currentFrameSize = 0
+    
     private var spaceLeft = maxSize
+    private var toRead = 0
     
     func enter() {
         webSocketStateUtils?.raiseConnect()
         frameParser.webSockStateUtils = webSocketStateUtils
         frameParser.outputStream = outputStream
         currentFramData = webSocketFrame.advanced(by: 0)
+        readBuffer = webSocketFrame.advanced(by: 0)
     }
     
     func didReceiveData() -> WebSocketTransition {
@@ -40,23 +44,29 @@ class WebSocketStateStreaming : WebSocketState {
         os_log(.debug, "WebSocketStateStreaming: received data.")
         if let ins = inputStream {
             while( ins.hasBytesAvailable ){
-                var toProcess = ins.read(currentFramData!, maxLength: spaceLeft)
-                os_log(.debug, "Bytes read in stream %d", toProcess)
-                while (toProcess > 0) {
-                    let processed = frameParser.parse(buffer: currentFramData!, size: toProcess)
+                let bytesRead = ins.read(readBuffer!, maxLength: spaceLeft)
+                toRead += bytesRead
+                os_log(.debug, "Bytes read in stream %d", bytesRead)
+                while (toRead > 0) {
+                    let processed = frameParser.parse(buffer: currentFramData!, size: toRead)
+                    os_log(.debug, "parse processed %d bytes, toRead = %d", processed, toRead)
                     if processed == 0 {
                         os_log(.debug, "Processed == 0, trying next time...")
+                        readBuffer = readBuffer?.advanced(by: bytesRead)
+                        spaceLeft -= bytesRead
                         break
                     }
-                    else if processed == toProcess {
+                    else if processed == toRead {
                         os_log(.debug, "Done processing (%d), resetting buffer.", processed)
-                        toProcess = 0
+                        toRead = 0
+                        
                         spaceLeft = WebSocketStateStreaming.maxSize
                         currentFramData =  webSocketFrame.advanced(by: 0)
+                        readBuffer = webSocketFrame.advanced(by: 0)
                     }
                     else {
                         os_log(.debug, "Keep processing...")
-                        toProcess -= processed
+                        toRead -= processed
                         currentFramData = webSocketFrame.advanced(by: processed)
                         spaceLeft -= processed
                     }
@@ -156,10 +166,6 @@ class WebSocketStateStreaming : WebSocketState {
             let frame : [UInt8] = [c | 0x80, 0x0]
             os.write(UnsafePointer<UInt8>(frame), maxLength: 2)
         }
-    }
-    
-    func receivedPong() {
-        webSocketStateUtils?.raisePong()
     }
     
     func openWriteStream(binary isbinary: Bool) -> WebSocketOutputStream {

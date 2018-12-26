@@ -27,6 +27,10 @@ class WebSocketFrameParser {
             sendPong()
             processedBytes = 2
             break
+        case .some(.Pong):
+            processedBytes = 2
+            receivedPong()
+            break
         case .some(.Close):
             receivedClose(buf)
             break
@@ -41,13 +45,27 @@ class WebSocketFrameParser {
         var processed = 0 // first byte
         var headersize = 2
         if( size >= 2 ) {
-            let payloadlen = Int(buf[1])
+            var payloadlen = Int(buf[1])
             if payloadlen <= 125 && payloadlen <= size {
                 let data = ArraySlice(UnsafeBufferPointer(start: buf.advanced(by: 2), count: payloadlen))
                 let message = String(bytes: data, encoding: .utf8)
                 processed = headersize + payloadlen
                 notifyTextMessage(message!)
             }
+            else if payloadlen == 126 {
+                headersize += 2
+                var extendedLen : UInt16 = 0
+                extendedLen = UInt16(buf[2]) << 8
+                extendedLen |= UInt16(buf[3])
+                payloadlen = Int(extendedLen)
+                if( (payloadlen+headersize) <= size) {
+                    let data = ArraySlice(UnsafeBufferPointer(start: buf.advanced(by: 4), count: payloadlen))
+                    let message = String(bytes: data, encoding: .utf8)
+                    processed = headersize + payloadlen
+                    notifyTextMessage(message!)
+                }
+            }
+            
         }
         return processed
     }
@@ -57,6 +75,7 @@ class WebSocketFrameParser {
             utils.raiseTextMessage(message: message)
         }
     }
+    
     
     private func sendPong() {
         sendCode(code: WebsocketOpCode.Pong.rawValue)
@@ -104,4 +123,11 @@ class WebSocketFrameParser {
         
         return reasonMessage
     }
+    
+    private func receivedPong() {
+        if let ws = webSockStateUtils {
+            ws.raisePong()
+        }
+    }
+    
 }

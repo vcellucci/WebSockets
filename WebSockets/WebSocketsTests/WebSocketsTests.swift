@@ -106,4 +106,31 @@ class WebSocketsTests: XCTestCase {
         let processed = webSocketFrameParser.parse(buffer: webSocketFrame, size: 4)
         XCTAssertEqual(processed, 0)
     }
+    
+    func testLargeTextFrame() {
+        let expected = "in hac habitasse platea dictumst vestibulum rhoncus est pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus at augue eget arcu dictum varius duis at consectetur lorem donec massa sapien faucibus et molestie ac feugiat sed lectus vestibulum mattis ullamcorper velit sed ullamcorper morbi tincidunt ornare massa eget egestas purus viverra accumsan in nisl"
+        
+        let webSockUtils = WebSocketStateUtils()
+        var receivedMessage = ""
+        webSockUtils.didReceiveMessage = {
+            (message) in
+            receivedMessage = message
+        }
+        
+        webSocketFrame[0] = 0x81
+        webSocketFrame[1] = 126
+        let count = UInt16(expected.count)
+        webSocketFrame[2] = UInt8((count & 0xff00) >> 8)
+        webSocketFrame[3] = UInt8(count & 0x00ff)
+        
+        let data : [UInt8] = [UInt8](expected.utf8)
+        for index in 0...data.count-1 {
+            webSocketFrame[4+index] = data[index]
+        }
+        let expectedProcess = data.count + 4
+        let webSocketFrameParser = WebSocketFrameParser()
+        webSocketFrameParser.webSockStateUtils = webSockUtils
+        let processed = webSocketFrameParser.parse(buffer: webSocketFrame, size: expectedProcess)
+        XCTAssertEqual(processed, expectedProcess)
+    }
 }

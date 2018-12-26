@@ -65,7 +65,6 @@ class ViewController: UIViewController {
             (message, code) in
                 os_log("Receved error: ", message, " code = ", code.localizedDescription)
                 self.updateUiToClosed()
-            
         }
         
         webSocket.didReceivePong = {
@@ -131,10 +130,6 @@ class ViewController: UIViewController {
                 receivedMessage.text = ""
                 receivedMessage.setNeedsDisplay()
                 webSocket.sendMessage(string: messageToSend.text)
-                webSocket.sendMessage(string: messageToSend.text)
-                webSocket.sendMessage(string: messageToSend.text)
-                webSocket.sendMessage(string: messageToSend.text)
-
             }
         }
     }
