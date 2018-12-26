@@ -162,6 +162,7 @@ class ViewController: UIViewController {
                     let end   = start + leftOver
                     wos.write(fragment: data[start...end-1])
                 }
+                
                 wos.close()
             }
         }

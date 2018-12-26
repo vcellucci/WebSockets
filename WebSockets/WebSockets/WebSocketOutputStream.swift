@@ -12,7 +12,6 @@ import os
 public protocol WebSocketOutputStream {
     func setBinary(_ binary : Bool)
     func write(fragment data : ArraySlice<UInt8>)
-    func reset()
     func close()
 }
 
@@ -24,10 +23,9 @@ class NilWebSocketOutputStreamImpl : WebSocketOutputStream {
     func write(fragment data: ArraySlice<UInt8>) {
     }
     
-    func reset(){
-    }
     func close() {
     }
+    
 }
 
 class WebSocketOutputStreamImpl : WebSocketOutputStream {
@@ -40,10 +38,6 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
 
     func setBinary(_ binary : Bool) {
         isBinary = binary
-    }
-    
-    func reset() {
-        isClosed = false
     }
 
     func write(fragment data: ArraySlice<UInt8>) {
@@ -67,7 +61,7 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
             }
             
             if isClosed {
-                webSocketFrame[0] = 0x80
+                webSocketFrame[0] |= 0x80
             }
             
             let payloadLen =  data.count//message.lengthOfBytesUsingEncoding(NSUTF8StringEncoding)
@@ -108,13 +102,12 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
         
         isClosed = true
         if let os = outStream {
-            let data : [UInt8] = [0x80, 0x00]
+            let data : [UInt8] = [0x80, 0x80, 1, 2, 3, 4]
             os.write(UnsafePointer<UInt8>(data), maxLength: data.count)
         }
     }
     
     deinit {
-        close()
         webSocketFrame.deallocate()
     }
 }
