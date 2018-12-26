@@ -20,7 +20,7 @@ class WebSocketFrameReader {
     var webSocketStateUtils : WebSocketStateUtils?
     var webSocketInputStream : WebSocketInputStream?
     var currentIndex = 0
-    
+    var fin : UInt8 = 0
     
     
     func readData(_ binary : Bool, _ bytesRead : Int) {
@@ -59,7 +59,7 @@ class WebSocketFrameReader {
     }
     
     fileprivate func syncInputStream(_ webSocketFrame: UnsafeMutablePointer<UInt8>) {
-        let fin = webSocketFrame[0] & 0x80
+        fin = webSocketFrame[0] & 0x80
         os_log(.debug, "fin = %d", fin)
         if( ((fin == 128) && (webSocketFrame[0] & 0x0f) != 0)){
             if let win = webSocketInputStream {
@@ -126,6 +126,12 @@ class WebSocketFrameReader {
             win.isBinary = binary
             if let drf = win.didReceiveFragment {
                 drf(arraySlice)
+            }
+            
+            if fin == 0x80 {
+                if let didCloseCallback = win.didClose {
+                    didCloseCallback()
+                }
             }
             return
         }
