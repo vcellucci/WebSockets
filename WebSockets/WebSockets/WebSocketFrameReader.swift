@@ -21,11 +21,14 @@ class WebSocketFrameReader {
     var webSocketInputStream : WebSocketInputStream?
     var currentIndex = 0
     
+    
+    
     func readData(_ binary : Bool, _ bytesRead : Int) {
         if let ws = _webSocketFrame {
             var webSocketFrame = ws.advanced(by: 0)
             var hasData = true
             var currentBytesProcess = 0
+            
             while( hasData ){
                 if( needsMore ){
                     handleNeedsMore(webSocketFrame, bytesRead, binary)
@@ -37,38 +40,19 @@ class WebSocketFrameReader {
                 currentHeader = 0
                 let payloadLen = webSocketFrame[1]
                 if payloadLen < 126 {
-                    let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by : 2), count: Int(payloadLen)))
-                    notifyData(data, binary)
+                    handleSmallFrame(webSocketFrame, payloadLen, &currentBytesProcess, binary)
                 }
                 else if(payloadLen == 126){
-                    currentHeader = 4 // 2 for optcode, payloadlen and 2 for 16bit payloadlen
-                    let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
-                    var u16 : UInt16 = 0
-                    dataBytes.getBytes(&u16, length: 2)
-                    u16 = u16.byteSwapped
-                    currentPayloadLen = Int(u16) + currentHeader
-                    currentBytesProcess += currentPayloadLen
-                    if( bytesRead < currentBytesProcess ){
-                        totalBytesRead += bytesRead
-                        needsMore = true
-                        os_log(.debug, "Need more data")
-                        return
-                    } else {
-                        if (bytesRead > currentBytesProcess ){
-                           os_log(.debug, "There is still more data, continue the loop here")
-                        } else {
-                            hasData = false
-                        }
-                        totalBytesRead = 0
-                        needsMore = false
-                    }
-                    
-                    let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(u16)))
-                    notifyData(data, binary)
-                    if hasData {
-                        webSocketFrame = webSocketFrame.advanced(by: currentPayloadLen)
-                        currentIndex += currentPayloadLen
-                    }
+                    handleMediumFrame(webSocketFrame, &currentBytesProcess, bytesRead, binary)
+                }
+                
+                if (bytesRead <= currentBytesProcess ){
+                    hasData = false
+                }
+                
+                if hasData {
+                    webSocketFrame = webSocketFrame.advanced(by: currentPayloadLen)
+                    currentIndex += currentPayloadLen
                 }
             }
         }
@@ -104,6 +88,35 @@ class WebSocketFrameReader {
         needsMore = false
         totalBytesRead = 0
         currentIndex = 0
+        notifyData(data, binary)
+    }
+    
+    fileprivate func handleSmallFrame(_ webSocketFrame: UnsafeMutablePointer<UInt8>, _ payloadLen: UInt8, _ currentBytesProcess: inout Int, _ binary: Bool) {
+        let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by : 2), count: Int(payloadLen)))
+        currentBytesProcess += Int(payloadLen) + 2
+        notifyData(data, binary)
+    }
+    
+    fileprivate func handleMediumFrame(_ webSocketFrame: UnsafeMutablePointer<UInt8>, _ currentBytesProcess: inout Int, _ bytesRead: Int, _ binary: Bool) {
+        currentHeader = 4 // 2 for optcode, payloadlen and 2 for 16bit payloadlen
+        let dataBytes = NSData(bytes: webSocketFrame.advanced(by: 2), length: 2)
+        var u16 : UInt16 = 0
+        dataBytes.getBytes(&u16, length: 2)
+        u16 = u16.byteSwapped
+        currentPayloadLen = Int(u16) + currentHeader
+        currentBytesProcess += currentPayloadLen
+        
+        if( bytesRead < currentBytesProcess ){
+            totalBytesRead += bytesRead
+            needsMore = true
+            return
+        }
+        else {
+            totalBytesRead = 0
+            needsMore = false
+        }
+        
+        let data = ArraySlice(UnsafeBufferPointer(start: webSocketFrame.advanced(by: 4), count: Int(u16)))
         notifyData(data, binary)
     }
     
