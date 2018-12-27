@@ -20,7 +20,10 @@ class WebSocketFrameParser {
         switch WebsocketOpCode(rawValue: opcode) {
         case .some(.TextFrame):
             os_log(.debug, "Received Text Frame")
-            processedBytes = handleTextFrame(buf, count)
+            processedBytes = handleMessageFrame(buf, count, false)
+            break
+        case .some(.BinaryFrame):
+            processedBytes = handleMessageFrame(buf, count, true)
             break
         case .some(.Ping):
             os_log(.debug, "Received Ping Frame")
@@ -41,41 +44,42 @@ class WebSocketFrameParser {
         return processedBytes
     }
     
-    private func handleTextFrame(_ buf : UnsafeMutablePointer<UInt8>, _ size : Int) -> Int {
+    private func handleMessageFrame(_ buf : UnsafeMutablePointer<UInt8>, _ size : Int, _ binary : Bool) -> Int {
         var processed = 0 // first byte
         var headersize = 2
         if( size >= 2 ) {
-            var payloadlen = Int(buf[1])
-            if payloadlen <= 125 && payloadlen <= size {
-                let data = ArraySlice(UnsafeBufferPointer(start: buf.advanced(by: 2), count: payloadlen))
-                let message = String(bytes: data, encoding: .utf8)
-                processed = headersize + payloadlen
-                notifyTextMessage(message!)
-            }
-            else if payloadlen == 126 {
-                headersize += 2
-                var extendedLen : UInt16 = 0
-                extendedLen = UInt16(buf[2]) << 8
-                extendedLen |= UInt16(buf[3])
-                payloadlen = Int(extendedLen)
-                if( (payloadlen+headersize) <= size) {
-                    let data = ArraySlice(UnsafeBufferPointer(start: buf.advanced(by: 4), count: payloadlen))
-                    let message = String(bytes: data, encoding: .utf8)
-                    processed = headersize + payloadlen
-                    notifyTextMessage(message!)
+            let payloadlen = getPayloadLen(buf, size, &headersize)
+            if ((payloadlen + headersize) <= size) {
+                let data = ArraySlice(UnsafeBufferPointer(start: buf.advanced(by: headersize), count: payloadlen))
+                processed = payloadlen + headersize
+                if let ws = webSockStateUtils {
+                    if binary {
+                        ws.raiseBinaryMessage(data: data)
+                    }
+                    else {
+                        let message = String(bytes: data, encoding: .utf8)
+                        ws.raiseTextMessage(message: message!)
+                    }
                 }
             }
-            
         }
         return processed
     }
     
-    private func notifyTextMessage(_ message : String) {
-        if let utils = webSockStateUtils {
-            utils.raiseTextMessage(message: message)
+    private func getPayloadLen(_ buf : UnsafeMutablePointer<UInt8>, _ size : Int, _ headerSize : inout Int) -> Int{
+        var payloadlen = Int(buf[1])
+        if payloadlen <= 125 {
+            return payloadlen
         }
+        else if (payloadlen == 126 && size >= 4) {
+            headerSize += 2
+            var extendedLen : UInt16 = 0
+            extendedLen = UInt16(buf[2]) << 8
+            extendedLen |= UInt16(buf[3])
+            payloadlen = Int(extendedLen)
+        }
+        return payloadlen
     }
-    
     
     private func sendPong() {
         sendCode(code: WebsocketOpCode.Pong.rawValue)
