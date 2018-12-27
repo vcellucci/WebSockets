@@ -86,7 +86,6 @@ class WebSocketStateStreaming : WebSocketState {
                 totalBytesLeftToSend = currentSendPayloadLen - lastBytesSent
                 currentSendPayloadLen -= lastBytesSent
             }
-            
         }
         return .None
     }

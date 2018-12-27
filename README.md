@@ -119,7 +119,7 @@ Streaming is done through message fragmentation.  To write a stream, the call to
 to write fragments to the websocket. `WebSocketOutputStream.close` can be called once done.   Streaming is great when the size of messages are unknown.  Fragments should not be larger than 16KB.  
 There is future plans to make this value configurable, up to 64KB.
 
-The following code assumes data that is evenly divisible by 16KB and can be partitioned at 16KB chunks.
+The following code assumes data that is evenly divisible by 16KB and can be partitioned at 16KB chunks.  The close data is being ignored in this example.
 
 ``` Swift
 let wos = webSocket.openWriteStream(binary: false)
@@ -132,7 +132,7 @@ for i in 0...chunks-1 {
     totalWritten += (1024*16)
 }
 
-wos.close()
+wos.close("Put anything here, will be sent to websocket")
 ```
 
 To Receive a stream, the `WebSocket.didReceiveStream` will called with a `WebSocketInputStream`. Then `WebSocketInputStream.didReceiveFragment` will be called for each fragment. `WebSocketInputStream.didClose` will be called once the stream is closed.
@@ -147,6 +147,7 @@ webSocket.didReceiveStream = {
     }
     
     win.didClose = {
+        (arraySlice) in
         os_log(.debug, "Received stream closed")
     }
 }

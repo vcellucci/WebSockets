@@ -57,6 +57,7 @@ class ViewController: UIViewController {
             }
             
             win.didClose = {
+                (arraySlice) in
                 os_log(.debug, "Received stream closed")
             }
         }
@@ -161,7 +162,9 @@ class ViewController: UIViewController {
                     wos.write(fragment: data[start...end-1])
                 }
                 
-                wos.close()
+                let closedMessage = "--stream-closed--"
+                let temp = [UInt8](closedMessage.utf8)
+                wos.close(fragment: temp[0...temp.count-1])
             }
         }
     }
