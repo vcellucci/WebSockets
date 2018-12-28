@@ -71,11 +71,11 @@ class WebSocketStateStreaming : WebSocketState {
                         os_log(.debug, "Still more data in buffer: %d", bytesInBuffer)
                         currentFramData = currentFramData?.advanced(by: processed)
                     }
-                    
                 }
             }
+            transition = frameParser.transition
         }
-        return .None
+        return transition
     }
     
     func canWriteData() -> WebSocketTransition {

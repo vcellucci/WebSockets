@@ -85,9 +85,12 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
             }
             
             var frameIndex = maskByteStart
+            var index = 0
             for val in data {
-                webSocketFrame[frameIndex] = val ^ mask[frameIndex%4]
+            
+                webSocketFrame[frameIndex] = val ^ mask[index % 4]
                 frameIndex += 1
+                index += 1
             }
             
             let bytesSent = os.write(webSocketFrame, maxLength: totalBytesToSend)

@@ -58,7 +58,8 @@ class ViewController: UIViewController {
             
             win.didClose = {
                 (arraySlice) in
-                os_log(.debug, "Received stream closed")
+                let message = String(bytes: arraySlice, encoding: .utf8)!
+                os_log(.debug, "Received stream closed: %{public}@", message)
             }
         }
         
@@ -74,7 +75,7 @@ class ViewController: UIViewController {
         
         webSocket.didClose = {
             (reason) in
-            os_log("Closed because; ", reason)
+            os_log("Closed because ", reason)
             self.updateUiToClosed()
         }
     }
@@ -142,22 +143,22 @@ class ViewController: UIViewController {
                     showMessage("Can't stream if less than 16 KB.  This is just a limitation with the tester app.")
                     return
                 }
-                
+                let chunkSize = 1024*16
                 receivedMessage.text = ""
                 receivedMessage.setNeedsDisplay()
                 let wos = webSocket.openWriteStream(binary: false)
                 let data = [UInt8](message.utf8)
-                let chunks = data.count / (1024*16)
+                let chunks = data.count / chunkSize
                 var totalWritten = 0
                 for i in 0...chunks-1 {
-                    let start = i * (1024*16)
-                    let end   = start + (1024*16)                   
+                    let start = i * chunkSize
+                    let end   = start + chunkSize
                     wos.write(fragment: data[start...end-1])
-                    totalWritten += (1024*16)
+                    totalWritten += chunkSize
                 }
                 let leftOver = data.count - totalWritten
                 if leftOver > 0 {
-                    let start = chunks * (1024*16)
+                    let start = chunks * chunkSize
                     let end   = start + leftOver
                     wos.write(fragment: data[start...end-1])
                 }
