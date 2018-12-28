@@ -58,8 +58,8 @@ class ViewController: UIViewController {
             
             win.didClose = {
                 (arraySlice) in
-                let message = String(bytes: arraySlice, encoding: .utf8)!
-                os_log(.debug, "Received stream closed: %{public}@", message)
+                os_log(.debug, "Received stream closed.")
+                self.handleStream(win.isBinary, arraySlice)
             }
         }
         
@@ -160,12 +160,8 @@ class ViewController: UIViewController {
                 if leftOver > 0 {
                     let start = chunks * chunkSize
                     let end   = start + leftOver
-                    wos.write(fragment: data[start...end-1])
+                    wos.close(fragment: data[start...end-1])
                 }
-                
-                let closedMessage = "--stream-closed--"
-                let temp = [UInt8](closedMessage.utf8)
-                wos.close(fragment: temp[0...temp.count-1])
             }
         }
     }
