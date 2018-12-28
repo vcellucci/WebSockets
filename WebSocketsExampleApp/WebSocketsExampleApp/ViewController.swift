@@ -179,7 +179,7 @@ class ViewController: UIViewController {
     
     @IBAction func onGenerate(_ sender: UIButton) {
         let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        let message = String((0...30000).map{_ in chars.randomElement()!})
+        let message = String((0...65534).map{_ in chars.randomElement()!})
         messageToSend.text = message
     }
     

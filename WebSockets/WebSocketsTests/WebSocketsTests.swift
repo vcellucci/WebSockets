@@ -111,11 +111,6 @@ class WebSocketsTests: XCTestCase {
         let expected = "in hac habitasse platea dictumst vestibulum rhoncus est pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus at augue eget arcu dictum varius duis at consectetur lorem donec massa sapien faucibus et molestie ac feugiat sed lectus vestibulum mattis ullamcorper velit sed ullamcorper morbi tincidunt ornare massa eget egestas purus viverra accumsan in nisl"
         
         let webSockUtils = WebSocketStateUtils()
-        var receivedMessage = ""
-        webSockUtils.didReceiveMessage = {
-            (message) in
-            receivedMessage = message
-        }
         
         webSocketFrame[0] = 0x81
         webSocketFrame[1] = 126
@@ -245,6 +240,45 @@ class WebSocketsTests: XCTestCase {
 
         XCTAssertEqual(0, circularBuffer.availableToRead())
 
+    }
+
+    func testWriteRingBuffer() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 4)
+        let written = circularBuffer.write(data: [1,2,3,4])
+        XCTAssertEqual(4, written)
+        XCTAssertEqual(0, circularBuffer.availableToWrite())
+        XCTAssertEqual(4, circularBuffer.availableToRead())
+
+        let testData = circularBuffer.getData(count: 4)
+        XCTAssertEqual(4, testData.count)
+    }
+    
+    func testOverflowWriteRingBuffer() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 4)
+        _ = circularBuffer.bump(count: 2)
+        _ = circularBuffer.consume(count: 2)
+        let written = circularBuffer.write(data: [1,2,3])
+        XCTAssertEqual(3, written)
+        XCTAssertEqual(0, circularBuffer.availableToWrite())
+        XCTAssertEqual(3, circularBuffer.availableToRead())
+        
+        let testData = circularBuffer.getData(count: 4)
+        XCTAssertEqual(3, testData.count)
+        
+    }
+    
+    func testOverflowOverwriteWriteRingBuffer() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 4)
+        _ = circularBuffer.bump(count: 2)
+        _ = circularBuffer.consume(count: 2)
+        let written = circularBuffer.write(data: [1,2,3, 4])
+        XCTAssertEqual(3, written)
+        XCTAssertEqual(0, circularBuffer.availableToWrite())
+        XCTAssertEqual(3, circularBuffer.availableToRead())
+        
+        let testData = circularBuffer.getData(count: 4)
+        XCTAssertEqual(3, testData.count)
+        
     }
     
     

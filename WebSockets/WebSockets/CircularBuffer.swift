@@ -149,5 +149,50 @@ class CircularBuffer<T> {
         readPtr = gptr
         return a
     }
+
+    func write(data bytes : Array<T>) -> Int {
+        guard var pptr = writePtr else {
+            return 0
+        }
+        
+        guard let eptr = endPtr else {
+            return 0
+        }
+        
+        guard let gptr = readPtr else {
+            return 0
+        }
+        
+        var index = 0
+        var bytesWritten = 0
+        if availableToWrite() < bytes.count {
+            guard let bptr = baseBuffer else { return 0 }
+            while(pptr < eptr ){
+                pptr.pointee = bytes[index]
+                index += 1
+                pptr += 1
+                bytesWritten += 1
+            }
+            pptr = bptr
+        }
+        
+        if gptr > pptr {
+            while( (index < bytes.count) && (pptr < (gptr-1)) ) {
+                pptr.pointee = bytes[index]
+                pptr += 1
+                bytesWritten += 1
+                index += 1
+            }
+        }
+        else {
+            for val in bytes {
+                pptr.pointee = val
+                bytesWritten += 1
+                pptr += 1
+            }
+        }
+        writePtr = pptr
+        return bytesWritten
+    }
     
 }
