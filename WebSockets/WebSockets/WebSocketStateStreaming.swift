@@ -51,6 +51,12 @@ class WebSocketStateStreaming : WebSocketState {
                 os_log(.debug, "Bytes read = %d", bytesRead)
                 bytesInBuffer += bytesRead
                 spaceLeft -= bytesRead
+                
+                if spaceLeft <= 0 {
+                    webSocketStateUtils?.raiseError(error: "Invalid buffer state.  Closing connection.", code: NSError(domain: "WebSockets", code: -1, userInfo: nil))
+                    return .Close
+                }
+                
                 readBuffer = readBuffer?.advanced(by: bytesRead)
                 var processing = true
                 while( (bytesInBuffer > 0) && processing ){
