@@ -29,7 +29,8 @@ class WebSocketStateStreaming : WebSocketState {
     private var currentFrameSize = 0
     
     private var spaceLeft = maxSize
-    private var bytesToProcess = 0
+    private var bytesInBuffer = 0
+    private var bytesProcessed = 0
     
     func enter() {
         webSocketStateUtils?.raiseConnect()
@@ -43,53 +44,38 @@ class WebSocketStateStreaming : WebSocketState {
         var transition : WebSocketTransition = .None
         os_log(.debug, "WebSocketStateStreaming: received data.")
         if let ins = inputStream {
-            var totaBytesReadThisFrame = 0
-            var totalBytesProcessThisFrame = 0
+           
             while( ins.hasBytesAvailable ){
-                if spaceLeft < 0 {
-                    webSocketStateUtils?.raiseError(error: "Invalid buffer state.  Closing connection.", code: NSError(domain: "Websocket", code: -1, userInfo: nil))
-                    return .Close
-                }
-                
+                os_log(.debug, "Reading %d bytes...", spaceLeft)
                 let bytesRead = ins.read(readBuffer!, maxLength: spaceLeft)
-                totaBytesReadThisFrame += bytesRead
-                bytesToProcess += bytesRead
-                os_log(.debug, "Bytes read in stream %d", bytesRead)
-                
-                while (bytesToProcess > 0) {
-                    os_log(.debug, "====Begin parsing====")
-                    let processed = frameParser.parse(buffer: currentFramData!, size: bytesToProcess)
-                    totalBytesProcessThisFrame += processed
-                    os_log(.debug, "parse processed %d bytes, toRead = %d", processed, bytesToProcess)
-                    if processed == 0 {
-                        os_log(.debug, "Processed == 0, trying next time...")
-                        readBuffer = readBuffer?.advanced(by: bytesRead)
-                        spaceLeft -= bytesRead
-                        break
-                    }
-                    else if totalBytesProcessThisFrame == totaBytesReadThisFrame {
-                        os_log(.debug, "Done processing (%d), resetting buffer.", processed)
-                        bytesToProcess = 0
-                        totaBytesReadThisFrame = 0
-                        totalBytesProcessThisFrame = 0
+                os_log(.debug, "Bytes read = %d", bytesRead)
+                bytesInBuffer += bytesRead
+                spaceLeft -= bytesRead
+                readBuffer = readBuffer?.advanced(by: bytesRead)
+                var processing = true
+                while( (bytesInBuffer > 0) && processing ){
+                    let processed = frameParser.parse(buffer: currentFramData!, size: bytesInBuffer)
+                    bytesInBuffer -= processed
+                    os_log(.debug, "Processed %d, bytes left in buffer = ", processed, bytesInBuffer)
+                    if  bytesInBuffer == 0 {
+                        os_log(.debug, "Buffer now empty, resetting")
                         spaceLeft = WebSocketStateStreaming.maxSize
-                        currentFramData =  webSocketFrame.advanced(by: 0)
                         readBuffer = webSocketFrame.advanced(by: 0)
+                        currentFramData = webSocketFrame.advanced(by: 0)
+                    }
+                    else if processed == 0 {
+                        os_log(.debug, "Needs more data.")
+                        processing = false
                     }
                     else {
-                        
-
-                        bytesToProcess -= processed
-                        currentFramData = webSocketFrame.advanced(by: processed)
-                        spaceLeft -= processed
-                        os_log(.debug, "Keep processing - processed: %d, spaceLeft = %d, bytesToProcess: %d", processed, spaceLeft, bytesToProcess)
-
+                        os_log(.debug, "Still more data in buffer: %d", bytesInBuffer)
+                        currentFramData = currentFramData?.advanced(by: processed)
                     }
+                    
                 }
             }
-            transition = frameParser.transition
         }
-        return transition
+        return .None
     }
     
     func canWriteData() -> WebSocketTransition {

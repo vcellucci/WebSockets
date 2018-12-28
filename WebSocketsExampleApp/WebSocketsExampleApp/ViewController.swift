@@ -161,9 +161,10 @@ class ViewController: UIViewController {
                     let end   = start + leftOver
                     wos.write(fragment: data[start...end-1])
                 }
-                wos.write(fragment: data[0...19])
-               
-                wos.close()
+                
+                let closedMessage = "--stream-closed--"
+                let temp = [UInt8](closedMessage.utf8)
+                wos.close(fragment: temp[0...temp.count-1])
             }
         }
     }
@@ -179,7 +180,7 @@ class ViewController: UIViewController {
     
     @IBAction func onGenerate(_ sender: UIButton) {
         let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        let message = String((0...32000).map{_ in chars.randomElement()!})
+        let message = String((0...65534).map{_ in chars.randomElement()!})
         messageToSend.text = message
     }
     
