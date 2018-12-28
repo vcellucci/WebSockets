@@ -1,0 +1,150 @@
+//
+//  CircularBuffer.swift
+//  WebSockets
+//
+//  Created by Vittorio Cellucci on 12/28/18.
+//  Copyright © 2018 Vittorio Cellucci. All rights reserved.
+//
+
+import Foundation
+class CircularBuffer<T> {
+    
+    var baseBuffer : UnsafeMutablePointer<T>?
+    var writePtr   : UnsafeMutablePointer<T>?
+    var readPtr    : UnsafeMutablePointer<T>?
+    var endPtr     : UnsafeMutablePointer<T>?
+    
+    var maxSize = 0
+    var spaceAvailable = 0
+    
+    init(capacity _maxsize: Int) {
+        maxSize = _maxsize
+        baseBuffer = UnsafeMutablePointer<T>.allocate(capacity: maxSize)
+        writePtr = baseBuffer?.advanced(by: 0)
+        readPtr = baseBuffer?.advanced(by: 0)
+        endPtr  = baseBuffer! + maxSize
+        spaceAvailable = maxSize
+    }
+    
+    func availableToWrite() -> Int {
+        guard let eptr = endPtr else {
+            return 0
+        }
+        
+        guard let gptr = readPtr else {
+            return 0
+        }
+        
+        guard let pptr = writePtr else {
+            return 0
+        }
+        
+        var val = 0
+        if(pptr >= gptr){
+            val = eptr - pptr
+        }
+        else {
+            val = (gptr - 1) - pptr
+        }
+        
+        return val
+    }
+    
+    func availableToRead() -> Int {
+        guard let pptr = writePtr else {
+            return 0
+        }
+        
+        guard let gptr = readPtr else {
+            return 0
+        }
+        
+        var val = 0
+        if gptr <= pptr {
+            val = pptr - gptr
+        }
+        else {
+            guard let eptr = endPtr else {
+                return 0
+            }
+            
+            guard let bptr = baseBuffer else {
+                return 0
+            }
+            
+            val = (eptr - gptr) + (pptr - bptr)
+        }
+        
+        return val
+    }
+    
+    func  getWritePtr() -> UnsafeMutablePointer<T>? {
+       return writePtr
+    }
+    
+    func getReadPtr() -> UnsafeMutablePointer<T>? {
+        return readPtr
+    }
+    
+    func bump(count c : Int) -> Int {
+        guard var pptr = writePtr else {
+            return 0
+        }
+        
+        var tobump = c
+        var needsWrap = false
+        if availableToWrite() < c {
+            tobump = availableToWrite() // wrapped around here
+            needsWrap = true
+        }
+        if needsWrap {
+            pptr = baseBuffer!
+        }
+        else {
+            pptr += tobump
+        }
+        writePtr? = pptr
+        return tobump
+    }
+    
+    func consume(count c : Int) -> Int {
+        guard var gptr = readPtr else {
+            return 0
+        }
+        gptr += c
+        readPtr? = gptr
+        return c
+    }
+    
+    func getData(count c : Int) -> [T] {
+        var a = [T]()
+        a.reserveCapacity(c)
+        
+        guard var gptr = readPtr else { return a }
+        guard let pptr = writePtr else { return a }
+        
+        var currentCount = 0
+        if gptr > pptr {
+            guard let eptr = endPtr else { return a }
+            guard let bptr = baseBuffer else { return a }
+
+            while ((gptr < eptr) && (currentCount < c)) {
+                a.append(gptr.pointee)
+                gptr += 1
+                currentCount += 1
+            }
+            gptr = bptr
+            
+        }
+        
+        while( (gptr < pptr) && (currentCount < c) ){
+            a.append(gptr.pointee)
+            gptr += 1
+            currentCount += 1
+        }
+        
+        readPtr = gptr
+        return a
+    }
+    
+}

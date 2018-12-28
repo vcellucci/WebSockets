@@ -133,4 +133,119 @@ class WebSocketsTests: XCTestCase {
         let processed = webSocketFrameParser.parse(buffer: webSocketFrame, size: expectedProcess)
         XCTAssertEqual(processed, expectedProcess)
     }
+    
+    func testCreateRingBuffer() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 1024)
+        XCTAssertEqual(circularBuffer.availableToWrite(), 1024)
+    }
+    
+    func testBumpRingBuffer() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 1024)
+        guard let pptr = circularBuffer.getWritePtr() else {
+            XCTAssertTrue(false, "fail")
+            return
+        }
+        
+        for val in 0...4 {
+            pptr[val] = UInt8(val)
+        }
+        
+        let bumped = circularBuffer.bump(count: 4)
+        XCTAssertEqual(bumped, 4)
+        XCTAssertEqual(circularBuffer.availableToWrite(), 1020)
+        
+    }
+    
+    func testConsumeBuffer() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 1024)
+        guard let pptr = circularBuffer.getWritePtr() else {
+            XCTAssertTrue(false, "fail")
+            return
+        }
+        
+        for val in 0...4 {
+            pptr[val] = UInt8(val)
+        }
+        
+        _ = circularBuffer.bump(count: 4)
+        XCTAssertEqual(circularBuffer.availableToRead(), 4)
+        guard let gptr = circularBuffer.getReadPtr() else {
+            XCTAssertTrue(false, "fail")
+            return
+        }
+        
+        for i in 0...4 {
+            XCTAssertEqual(UInt8(i), gptr[i])
+        }
+        
+        let consumed = circularBuffer.consume(count: 4)
+        XCTAssertEqual(consumed, 4)
+        XCTAssertEqual(0, circularBuffer.availableToRead())
+        XCTAssertEqual(circularBuffer.availableToWrite(), 1020)
+
+    }
+    
+    func testGetDataRingBuffer() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 4)
+        let wptr = circularBuffer.getWritePtr()
+        guard let pptr = wptr else {
+            return
+        }
+        
+        for val in 0...3 {
+            pptr[val] = UInt8(val) + 1
+        }
+        _ = circularBuffer.bump(count: 4)
+
+        XCTAssertEqual(4, circularBuffer.availableToRead())
+        let data = circularBuffer.getData(count: 2)
+        for v in 0..<data.count {
+            XCTAssertEqual(UInt8(v+1), data[v])
+        }
+        
+        XCTAssertEqual(2, circularBuffer.availableToRead())
+
+    }
+    
+    func testOverFlow() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 4)
+        let wptr = circularBuffer.getWritePtr()
+        guard let pptr = wptr else {
+            return
+        }
+        
+        for val in 0...3 {
+            pptr[val] = UInt8(val) + 1
+        }
+        
+        _ = circularBuffer.bump(count: 2)
+        _ = circularBuffer.consume(count: 2)
+        XCTAssertEqual(0, circularBuffer.availableToRead())
+        
+        let bumped = circularBuffer.bump(count: 3)
+        XCTAssertEqual(2, bumped)
+        XCTAssertEqual(1, circularBuffer.availableToWrite())
+        XCTAssertEqual(2, circularBuffer.availableToRead())
+        
+        let wptrAfter = circularBuffer.getWritePtr()
+        guard let pptrAfter = wptrAfter else {
+            return
+        }
+        
+        pptrAfter[0] = 9
+        _ = circularBuffer.bump(count: 1)
+        XCTAssertEqual(3, circularBuffer.availableToRead())
+        XCTAssertEqual(0, circularBuffer.availableToWrite())
+
+        var data = circularBuffer.getData(count: 3)
+        XCTAssertEqual(3, data.count)
+        XCTAssertEqual(3, data[0])
+        XCTAssertEqual(4, data[1])
+        XCTAssertEqual(9, data[2])
+
+        XCTAssertEqual(0, circularBuffer.availableToRead())
+
+    }
+    
+    
 }

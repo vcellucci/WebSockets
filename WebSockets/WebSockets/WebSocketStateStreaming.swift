@@ -53,6 +53,7 @@ class WebSocketStateStreaming : WebSocketState {
                 spaceLeft -= bytesRead
                 
                 if spaceLeft <= 0 {
+                    os_log(.error, "Invalid buffer state, spaceleft = %d", spaceLeft)
                     webSocketStateUtils?.raiseError(error: "Invalid buffer state.  Closing connection.", code: NSError(domain: "WebSockets", code: -1, userInfo: nil))
                     return .Close
                 }
@@ -62,7 +63,7 @@ class WebSocketStateStreaming : WebSocketState {
                 while( (bytesInBuffer > 0) && processing ){
                     let processed = frameParser.parse(buffer: currentFramData!, size: bytesInBuffer)
                     bytesInBuffer -= processed
-                    os_log(.debug, "Processed %d, bytes left in buffer = ", processed, bytesInBuffer)
+                    os_log(.debug, "Processed %d, bytes left in buffer = %d", processed, bytesInBuffer)
                     if  bytesInBuffer == 0 {
                         os_log(.debug, "Buffer now empty, resetting")
                         spaceLeft = WebSocketStateStreaming.maxSize
