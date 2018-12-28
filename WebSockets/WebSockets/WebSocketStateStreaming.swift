@@ -43,6 +43,8 @@ class WebSocketStateStreaming : WebSocketState {
         var transition : WebSocketTransition = .None
         os_log(.debug, "WebSocketStateStreaming: received data.")
         if let ins = inputStream {
+            var totaBytesReadThisFrame = 0
+            var totalBytesProcessThisFrame = 0
             while( ins.hasBytesAvailable ){
                 if spaceLeft < 0 {
                     webSocketStateUtils?.raiseError(error: "Invalid buffer state.  Closing connection.", code: NSError(domain: "Websocket", code: -1, userInfo: nil))
@@ -50,11 +52,14 @@ class WebSocketStateStreaming : WebSocketState {
                 }
                 
                 let bytesRead = ins.read(readBuffer!, maxLength: spaceLeft)
+                totaBytesReadThisFrame += bytesRead
                 bytesToProcess += bytesRead
                 os_log(.debug, "Bytes read in stream %d", bytesRead)
                 
                 while (bytesToProcess > 0) {
+                    os_log(.debug, "====Begin parsing====")
                     let processed = frameParser.parse(buffer: currentFramData!, size: bytesToProcess)
+                    totalBytesProcessThisFrame += processed
                     os_log(.debug, "parse processed %d bytes, toRead = %d", processed, bytesToProcess)
                     if processed == 0 {
                         os_log(.debug, "Processed == 0, trying next time...")
@@ -62,18 +67,23 @@ class WebSocketStateStreaming : WebSocketState {
                         spaceLeft -= bytesRead
                         break
                     }
-                    else if processed == bytesToProcess {
+                    else if totalBytesProcessThisFrame == totaBytesReadThisFrame {
                         os_log(.debug, "Done processing (%d), resetting buffer.", processed)
                         bytesToProcess = 0
+                        totaBytesReadThisFrame = 0
+                        totalBytesProcessThisFrame = 0
                         spaceLeft = WebSocketStateStreaming.maxSize
                         currentFramData =  webSocketFrame.advanced(by: 0)
                         readBuffer = webSocketFrame.advanced(by: 0)
                     }
                     else {
-                        os_log(.debug, "Keep processing...")
+                        
+
                         bytesToProcess -= processed
                         currentFramData = webSocketFrame.advanced(by: processed)
                         spaceLeft -= processed
+                        os_log(.debug, "Keep processing - processed: %d, spaceLeft = %d, bytesToProcess: %d", processed, spaceLeft, bytesToProcess)
+
                     }
                 }
             }

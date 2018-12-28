@@ -12,7 +12,7 @@ import os
 public protocol WebSocketOutputStream {
     func setBinary(_ binary : Bool)
     func write(fragment data : ArraySlice<UInt8>)
-    func close(fragment data: ArraySlice<UInt8>)
+    func close()
 }
 
 class NilWebSocketOutputStreamImpl : WebSocketOutputStream {
@@ -23,7 +23,7 @@ class NilWebSocketOutputStreamImpl : WebSocketOutputStream {
     func write(fragment data: ArraySlice<UInt8>) {
     }
     
-    func close(fragment data: ArraySlice<UInt8>) {
+    func close() {
     }
     
 }
@@ -95,13 +95,16 @@ class WebSocketOutputStreamImpl : WebSocketOutputStream {
         }
     }
     
-    func close(fragment data: ArraySlice<UInt8>) {
+    func close() {
         if isClosed {
             return
         }
         
         isClosed = true
-        write(fragment: data)
+        if let os = outStream {
+            let data : [UInt8] = [0x80, 0x00]
+            os.write(UnsafePointer<UInt8>(data), maxLength: data.count)
+        }
     }
     
     deinit {

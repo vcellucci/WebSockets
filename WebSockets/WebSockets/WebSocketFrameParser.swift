@@ -108,6 +108,7 @@ class WebSocketFrameParser {
             extendedLen |= UInt16(buf[3])
             payloadlen = Int(extendedLen)
         }
+        os_log(.debug, "getPayloadLen() = %d, size = %d", payloadlen, size)
         return payloadlen
     }
     
