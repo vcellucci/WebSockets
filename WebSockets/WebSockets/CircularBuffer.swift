@@ -118,7 +118,6 @@ class CircularBuffer<T> {
     
     func getData(count c : Int) -> [T] {
         var a = [T]()
-        a.reserveCapacity(c)
         
         guard var gptr = readPtr else { return a }
         guard let pptr = writePtr else { return a }
@@ -127,22 +126,26 @@ class CircularBuffer<T> {
         if gptr > pptr {
             guard let eptr = endPtr else { return a }
             guard let bptr = baseBuffer else { return a }
-
-            while ((gptr < eptr) && (currentCount < c)) {
-                a.append(gptr.pointee)
-                gptr += 1
-                currentCount += 1
+            
+            currentCount = eptr - gptr
+            if currentCount > c {
+                currentCount = c
+                a = Array(UnsafeBufferPointer(start: gptr, count: currentCount))
+                gptr += currentCount
             }
-            gptr = bptr
+            else {
+                a = Array(UnsafeBufferPointer(start: gptr, count: currentCount))
+                gptr = bptr
+            }
             
         }
         
-        while( (gptr < pptr) && (currentCount < c) ){
-            a.append(gptr.pointee)
-            gptr += 1
-            currentCount += 1
+        currentCount = (pptr - gptr)
+        if currentCount > c {
+            currentCount = c
         }
-        
+        a.append(contentsOf: Array(UnsafeBufferPointer(start: gptr, count: (pptr - gptr))))
+        gptr += currentCount
         readPtr = gptr
         return a
     }
