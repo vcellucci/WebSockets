@@ -251,6 +251,9 @@ class WebSocketsTests: XCTestCase {
 
         let testData = circularBuffer.getData(count: 4)
         XCTAssertEqual(4, testData.count)
+        for i in 0..<testData.count {
+            XCTAssertEqual(UInt8(i+1), testData[i])
+        }
     }
     
     func testOverflowWriteRingBuffer() {
@@ -264,7 +267,9 @@ class WebSocketsTests: XCTestCase {
         
         let testData = circularBuffer.getData(count: 4)
         XCTAssertEqual(3, testData.count)
-        
+        for i in 0..<testData.count {
+            XCTAssertEqual(UInt8(i+1), testData[i])
+        }
     }
     
     func testOverflowOverwriteWriteRingBuffer() {
@@ -278,8 +283,8 @@ class WebSocketsTests: XCTestCase {
         
         let testData = circularBuffer.getData(count: 4)
         XCTAssertEqual(3, testData.count)
-        
+        for i in 0..<testData.count {
+            XCTAssertEqual(UInt8(i+1), testData[i])
+        }
     }
-    
-    
 }
