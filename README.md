@@ -123,13 +123,14 @@ The following code assumes data that is evenly divisible by 16KB and can be part
 
 ``` Swift
 let wos = webSocket.openWriteStream(binary: false)
-let chunks = data.count / (1024*16)
+let chunkSize = 1024*16
+let chunks = data.count / chunkSize
 var totalWritten = 0
-for i in 0...chunks-1 {
-    let start = i * (1024*16)
-    let end   = start + (1024*16)                   
-    wos.write(fragment: data[start...end-1])
-    totalWritten += (1024*16)
+for i in 0..<chunks {
+    let start = i * chunkSize
+    let end   = start + chunkSize                   
+    wos.write(fragment: data[start..<end])
+    totalWritten += chunkSize
 }
 
 wos.close("put leftover/signals data in here")
