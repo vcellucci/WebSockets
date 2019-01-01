@@ -7,8 +7,7 @@ Message sizes have a limit of 64KB.  However, streaming is supported via Websock
 
 ### Getting Started
 
-The websocket framework will do its best to determine if it's a secure socket.  by passing `wss://` as the location, it will
-automatically pick TlSv1.  If for some reason, this is not possible, then set the member `secure` to true. 
+The websocket framework will do its best to determine if it's a secure socket, by passing `wss://` as the location.
 
 1. Add the Framework as an embedded binary to your app
 2. This framework uses callbacks instead of a protocol for finer grain usage
