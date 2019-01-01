@@ -47,7 +47,6 @@ The websocket framework will do its best to determine if it's a secure socket, b
 ```
 
 #### Open the websocket
-As stated earlier, the WebSocket will do its best to decide on using TLS or not.  If connecting with `wss` it will use TLSv1.
 Use a standard URL for the location such as `wss://foo.bar:1234/notifications`
 ``` Swift
     if(!webSocket.open(location: "wss://echo.websocket.org")){
