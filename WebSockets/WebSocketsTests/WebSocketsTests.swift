@@ -287,4 +287,22 @@ class WebSocketsTests: XCTestCase {
             XCTAssertEqual(UInt8(i+1), testData[i])
         }
     }
+    
+    func testPeekRingBuffer() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 8)
+        _ = circularBuffer.write(data: [1,2,3,4,5,6,7,8])
+        for val in 0..<8 {
+            let b = circularBuffer.peek(at: val)
+            XCTAssertEqual(8, circularBuffer.availableToRead())
+            XCTAssertEqual(UInt8(val+1), b)
+        }
+    }
+    
+    func testPeekRingBufferUnderflow() {
+        let circularBuffer = CircularBuffer<UInt8>(capacity: 8)
+        _ = circularBuffer.write(data: [1,2,3,4])
+        let b = circularBuffer.peek(at: 5)
+        XCTAssertNil(b)
+        XCTAssertEqual(4, circularBuffer.availableToRead())
+    }
 }

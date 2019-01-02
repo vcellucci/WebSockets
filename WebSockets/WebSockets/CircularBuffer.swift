@@ -195,4 +195,16 @@ class CircularBuffer<T> {
         return bytesWritten
     }
     
+    func peek(at pos : Int) -> T? {
+        guard var gptr = readPtr else {
+            return nil
+        }
+        
+        if pos > availableToRead() {
+            return nil
+        }
+        gptr += pos
+        return gptr.pointee
+    }
+    
 }

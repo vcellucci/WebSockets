@@ -27,7 +27,8 @@ class WebSocketStateStreaming : WebSocketState {
     private var currentFramData : UnsafeMutablePointer<UInt8>?
     private var readBuffer : UnsafeMutablePointer<UInt8>?
     private var currentFrameSize = 0
-    
+    private var circularBuffer = CircularBuffer<UInt8>(capacity: maxSize)
+
     private var spaceLeft = maxSize
     private var bytesInBuffer = 0
     private var bytesProcessed = 0
