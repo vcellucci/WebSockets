@@ -8,7 +8,7 @@
 
 import Foundation
 public class WebSocketInputStream {
-    public var didReceiveFragment : ((ArraySlice<UInt8>)->())?
-    public var didClose : ((ArraySlice<UInt8>)->())?
+    public var didReceiveFragment : ((Array<UInt8>)->())?
+    public var didClose : ((Array<UInt8>)->())?
     public var isBinary = false
 }

@@ -25,20 +25,15 @@ class WebSocketStateStreaming : WebSocketState {
     private var bytesSent = 0
     private var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSize)
     private var currentFramData : UnsafeMutablePointer<UInt8>?
-    private var readBuffer : UnsafeMutablePointer<UInt8>?
     private var currentFrameSize = 0
     private var circularBuffer = CircularBuffer<UInt8>(capacity: maxSize)
 
-    private var spaceLeft = maxSize
-    private var bytesInBuffer = 0
     private var bytesProcessed = 0
     
     func enter() {
         webSocketStateUtils?.raiseConnect()
         frameParser.webSockStateUtils = webSocketStateUtils
         frameParser.outputStream = outputStream
-        currentFramData = webSocketFrame.advanced(by: 0)
-        readBuffer = webSocketFrame.advanced(by: 0)
     }
     
     func didReceiveData() -> WebSocketTransition {
@@ -47,36 +42,26 @@ class WebSocketStateStreaming : WebSocketState {
         if let ins = inputStream {
            
             while( ins.hasBytesAvailable ){
-                os_log(.debug, "Reading %d bytes...", spaceLeft)
-                let bytesRead = ins.read(readBuffer!, maxLength: spaceLeft)
-                os_log(.debug, "Bytes read = %d", bytesRead)
-                bytesInBuffer += bytesRead
-                spaceLeft -= bytesRead
-                
-                if spaceLeft <= 0 {
-                    os_log(.error, "Invalid buffer state, spaceleft = %d", spaceLeft)
-                    webSocketStateUtils?.raiseError(error: "Invalid buffer state.  Closing connection.", code: NSError(domain: "WebSockets", code: -1, userInfo: nil))
-                    return .Close
-                }
-                
-                readBuffer = readBuffer?.advanced(by: bytesRead)
+                os_log(.debug, "Reading %d bytes...", circularBuffer.availableToWrite())
+                let bytesRead = ins.read(circularBuffer.getWritePtr()!, maxLength: circularBuffer.availableToWrite())
+                _ = circularBuffer.bump(count: bytesRead)
+                os_log(.debug, "Bytes read = %d, bytes in buffer = %d", bytesRead, circularBuffer.availableToRead())
+
                 var processing = true
-                while( (bytesInBuffer > 0) && processing ){
-                    let processed = frameParser.parse(buffer: currentFramData!, size: bytesInBuffer)
-                    bytesInBuffer -= processed
-                    os_log(.debug, "Processed %d, bytes left in buffer = %d", processed, bytesInBuffer)
-                    if  bytesInBuffer == 0 {
+                while( (circularBuffer.availableToRead() > 0) && processing ){
+                    let processed = frameParser.parse(buffer: circularBuffer)
+                    
+                    os_log(.debug, "Processed %d, left in buffer = %d", processed, circularBuffer.availableToRead())
+                    if  circularBuffer.availableToRead() == 0 {
                         os_log(.debug, "Buffer now empty, resetting")
-                        spaceLeft = WebSocketStateStreaming.maxSize
-                        readBuffer = webSocketFrame.advanced(by: 0)
-                        currentFramData = webSocketFrame.advanced(by: 0)
+                        circularBuffer.reset()
                     }
                     else if processed == 0 {
                         os_log(.debug, "Needs more data.")
                         processing = false
                     }
                     else {
-                        os_log(.debug, "Still more data in buffer: %d", bytesInBuffer)
+                        os_log(.debug, "Still more data in buffer: %d", circularBuffer.availableToRead())
                         currentFramData = currentFramData?.advanced(by: processed)
                     }
                 }
@@ -87,7 +72,8 @@ class WebSocketStateStreaming : WebSocketState {
     }
     
     func canWriteData() -> WebSocketTransition {
-        if let os = outputStream {
+        os_log(.debug, "Can write!")
+        /*if let os = outputStream {
             if currentSendPayloadLen > 0 {
                 let senData = webSocketFrame.advanced(by: lastBytesSent)
                 let bytesSent = os.write(senData, maxLength: currentFrameSize)
@@ -95,7 +81,7 @@ class WebSocketStateStreaming : WebSocketState {
                 totalBytesLeftToSend = currentSendPayloadLen - lastBytesSent
                 currentSendPayloadLen -= lastBytesSent
             }
-        }
+        }*/
         return .None
     }
     

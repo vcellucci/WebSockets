@@ -26,6 +26,14 @@ class CircularBuffer<T> {
         spaceAvailable = maxSize
     }
     
+    func reset() {
+        baseBuffer = UnsafeMutablePointer<T>.allocate(capacity: maxSize)
+        writePtr = baseBuffer?.advanced(by: 0)
+        readPtr = baseBuffer?.advanced(by: 0)
+        endPtr  = baseBuffer! + maxSize
+        spaceAvailable = maxSize
+    }
+    
     func availableToWrite() -> Int {
         guard let eptr = endPtr else {
             return 0
@@ -119,6 +127,7 @@ class CircularBuffer<T> {
     func getData(count c : Int) -> [T] {
         var a = [T]()
         
+        
         guard var gptr = readPtr else { return a }
         guard let pptr = writePtr else { return a }
         
@@ -128,7 +137,7 @@ class CircularBuffer<T> {
             guard let bptr = baseBuffer else { return a }
             
             currentCount = eptr - gptr
-            if currentCount > c {
+            if currentCount >= c {
                 currentCount = c
                 a = Array(UnsafeBufferPointer(start: gptr, count: currentCount))
                 gptr += currentCount
@@ -141,10 +150,10 @@ class CircularBuffer<T> {
         }
         
         currentCount = (pptr - gptr)
-        if currentCount > c {
+        if c <= currentCount {
             currentCount = c
         }
-        a.append(contentsOf: Array(UnsafeBufferPointer(start: gptr, count: (pptr - gptr))))
+        a.append(contentsOf: Array(UnsafeBufferPointer(start: gptr, count: currentCount)))
         gptr += currentCount
         readPtr = gptr
         return a

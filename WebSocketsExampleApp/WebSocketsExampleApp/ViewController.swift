@@ -102,7 +102,7 @@ class ViewController: UIViewController {
         connectButton.isEnabled = false
     }
     
-    private func handleStream(_ binary : Bool, _ arraySlice : ArraySlice<UInt8> ){
+    private func handleStream(_ binary : Bool, _ arraySlice : Array<UInt8> ){
         if !binary {
             receivedMessage.text += String(bytes: arraySlice, encoding: .utf8)!
             receivedMessage.setNeedsDisplay()
