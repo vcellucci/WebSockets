@@ -60,6 +60,7 @@ class ViewController: UIViewController {
                 (arraySlice) in
                 os_log(.debug, "Received stream closed.")
                 self.handleStream(win.isBinary, arraySlice)
+                self.streamButton.isEnabled = true
             }
         }
         
@@ -102,7 +103,7 @@ class ViewController: UIViewController {
         connectButton.isEnabled = false
     }
     
-    private func handleStream(_ binary : Bool, _ arraySlice : ArraySlice<UInt8> ){
+    private func handleStream(_ binary : Bool, _ arraySlice : Array<UInt8> ){
         if !binary {
             receivedMessage.text += String(bytes: arraySlice, encoding: .utf8)!
             receivedMessage.setNeedsDisplay()
@@ -143,6 +144,7 @@ class ViewController: UIViewController {
                     showMessage("Can't stream if less than 16 KB.  This is just a limitation with the tester app.")
                     return
                 }
+                streamButton.isEnabled = false
                 let chunkSize = 1024*16
                 receivedMessage.text = ""
                 receivedMessage.setNeedsDisplay()
@@ -150,11 +152,13 @@ class ViewController: UIViewController {
                 let data = [UInt8](message.utf8)
                 let chunks = data.count / chunkSize
                 var totalWritten = 0
-                for i in 0...chunks-1 {
-                    let start = i * chunkSize
-                    let end   = start + chunkSize
-                    wos.write(fragment: data[start...end-1])
-                    totalWritten += chunkSize
+                if chunks > 0{
+                    for i in 0...chunks-1 {
+                        let start = i * chunkSize
+                        let end   = start + chunkSize
+                        wos.write(fragment: data[start...end-1])
+                        totalWritten += chunkSize
+                    }
                 }
                 let leftOver = data.count - totalWritten
                 if leftOver > 0 {
@@ -177,7 +181,7 @@ class ViewController: UIViewController {
     
     @IBAction func onGenerate(_ sender: UIButton) {
         let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        let message = String((0...65534).map{_ in chars.randomElement()!})
+        let message = String((0..<65535).map{_ in chars.randomElement()!})
         messageToSend.text = message
     }
     

@@ -14,27 +14,38 @@ class WebSocketFrameParser {
     var outputStream : OutputStream?
     var transition : WebSocketTransition = .None
     var webSocketInputStream : WebSocketInputStream?
+    var fin : UInt8 = 0
     
-    func parse(buffer buf : UnsafeMutablePointer<UInt8>, size count : Int) -> Int{
+    func parse(buffer buf : CircularBuffer<UInt8>) -> Int{
         var processedBytes = 0
-        let opcode = buf[0] & 0xf
+        if buf.availableToRead() < 0 {
+            os_log(.debug, "Not enough bytes in buffer to process: %d", buf.availableToRead())
+            return processedBytes
+        }
+        
+        guard let readBuf = buf.getReadPtr() else {
+            os_log(.error, "Invalid read buffer.")
+            return 0
+        }
+        
+        let opcode = readBuf[0] & 0xf
         switch WebsocketOpCode(rawValue: opcode) {
         case .some(.Fragment):
             os_log(.debug, "==> Received Fragment Frame")
-            processedBytes = handleMessageFrame(buf, count, false)
+            processedBytes = handleMessageFrame(buf, false)
             break
         case .some(.TextFrame):
             os_log(.debug, "==> Received Text Frame")
-            processedBytes = handleMessageFrame(buf, count, false)
+            processedBytes = handleMessageFrame(buf, false)
             break
         case .some(.BinaryFrame):
             os_log(.debug, "==> Received BinaryFrame Frame")
-            processedBytes = handleMessageFrame(buf, count, true)
+            processedBytes = handleMessageFrame(buf, true)
             break
         case .some(.Ping):
             os_log(.debug, "==> Received Ping Frame")
+            processedBytes = buf.consume(count: 2)
             sendPong()
-            processedBytes = 2
             break
         case .some(.Pong):
             processedBytes = 2
@@ -52,35 +63,39 @@ class WebSocketFrameParser {
         return processedBytes
     }
     
-    private func handleMessageFrame(_ buf : UnsafeMutablePointer<UInt8>, _ size : Int, _ binary : Bool) -> Int {
+    private func handleMessageFrame(_ buf : CircularBuffer<UInt8>, _ binary : Bool) -> Int {
         var processed = 0 // first byte
         var headersize = 2
-        syncWebsocketInputStream(buf, size, binary)
-        if( size >= 2 ) {
-            let payloadlen = getPayloadLen(buf, size, &headersize)
-            if ((payloadlen + headersize) <= size) {
-                let data = ArraySlice(UnsafeBufferPointer(start: buf.advanced(by: headersize), count: payloadlen))
-                processed = payloadlen + headersize
-                if let wsi = webSocketInputStream {
-                    notifyFragment(buf, wsi, data)
+        syncWebsocketInputStream(buf, binary)
+        let payloadlen = getPayloadLen(buf, &headersize)
+        if ((payloadlen + headersize) <= buf.availableToRead()) {
+            _ = buf.consume(count: headersize)
+            let data = buf.getData(count: payloadlen)//ArraySlice(UnsafeBufferPointer(start: buf.advanced(by: headersize), count: payloadlen))
+            processed = payloadlen + headersize
+            if let wsi = webSocketInputStream {
+                notifyFragment(buf, wsi, data)
+            }
+            else if let ws = webSockStateUtils {
+                if binary {
+                    //ws.raiseBinaryMessage(data: data)
                 }
-                else if let ws = webSockStateUtils {
-                    if binary {
-                        ws.raiseBinaryMessage(data: data)
-                    }
-                    else {
-                        let message = String(bytes: data, encoding: .utf8)
-                        ws.raiseTextMessage(message: message!)
-                    }
+                else {
+                    let message = String(bytes: data, encoding: .utf8)
+                    ws.raiseTextMessage(message: message!)
                 }
             }
         }
+        
         return processed
     }
     
-    private func syncWebsocketInputStream(_ buf : UnsafeMutablePointer<UInt8>, _ size : Int, _ binary : Bool) {
-        let fin = buf[0] & 0x80
-        let opcode = buf[0] & 0x0f
+    private func syncWebsocketInputStream(_ buf :  CircularBuffer<UInt8>, _ binary : Bool) {
+        guard let readBuf = buf.getReadPtr() else {
+            return
+        }
+        
+        fin = readBuf[0] & 0x80
+        let opcode = readBuf[0] & 0x0f
         
         os_log(.debug, "Fin = %d", fin)
         if( (fin == 0) && webSocketInputStream == nil ){
@@ -96,24 +111,24 @@ class WebSocketFrameParser {
         }
     }
     
-    private func getPayloadLen(_ buf : UnsafeMutablePointer<UInt8>, _ size : Int, _ headerSize : inout Int) -> Int{
-        var payloadlen = Int(buf[1])
+    private func getPayloadLen(_ buf : CircularBuffer<UInt8>, _ headerSize : inout Int) -> Int{
+        guard let readBuf = buf.getReadPtr() else { return 0 }
+        var payloadlen = Int(readBuf[1])
         if payloadlen <= 125 {
             return payloadlen
         }
-        else if (payloadlen == 126 && size >= 4) {
+        else if (payloadlen == 126 && buf.availableToRead() >= 4) {
             headerSize += 2
             var extendedLen : UInt16 = 0
-            extendedLen = UInt16(buf[2]) << 8
-            extendedLen |= UInt16(buf[3])
+            extendedLen = UInt16(readBuf[2]) << 8
+            extendedLen |= UInt16(readBuf[3])
             payloadlen = Int(extendedLen)
         }
-        os_log(.debug, "getPayloadLen() = %d, size = %d", payloadlen, size)
+        os_log(.debug, "getPayloadLen() = %d, size = %d", payloadlen, buf.availableToRead())
         return payloadlen
     }
     
-    fileprivate func notifyFragment(_ buf: UnsafeMutablePointer<UInt8>, _ wsi: WebSocketInputStream, _ data: ArraySlice<UInt8>) {
-        let fin = buf[0] & 0x80
+    fileprivate func notifyFragment(_ buf: CircularBuffer<UInt8>, _ wsi: WebSocketInputStream, _ data: Array<UInt8>) {
         if fin == 0 {
             if let didReceiveFragmentCallback = wsi.didReceiveFragment {
                 didReceiveFragmentCallback(data)
@@ -135,16 +150,18 @@ class WebSocketFrameParser {
         }
     }
     
-    private func receivedClose(_ buf : UnsafeMutablePointer<UInt8>) {
-        let payloadLen = buf[1]
+    private func receivedClose(_ buf : CircularBuffer<UInt8>) {
+        guard let readBuf = buf.getReadPtr() else { return }
+        let payloadLen = readBuf[1]
         var reason : UInt16 = 0
-        
+
         if( payloadLen > 0 ) {
-            let dataBytes = NSData(bytes: buf.advanced(by: 2), length: 2)
-            dataBytes.getBytes(&reason, length: 2)
+            _ = buf.consume(count: 2)
+            let dataBytes = buf.getData(count: 2)
+            let data = NSData(bytes: dataBytes, length: 2)
+            data.getBytes(&reason, length: 2)
             reason = reason.byteSwapped
-            
-            os_log(.debug, "Close Reason: %d", reason)
+            os_log(.debug, "Close Reason: %d", dataBytes)
         }
         
         if let os = outputStream {

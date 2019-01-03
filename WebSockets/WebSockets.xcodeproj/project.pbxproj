@@ -19,6 +19,7 @@
 		B947308F21D27904002756CC /* WebSocketInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = B947308E21D27904002756CC /* WebSocketInputStream.swift */; };
 		B947309121D417A5002756CC /* WebSocketFrameParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B947309021D417A5002756CC /* WebSocketFrameParser.swift */; };
 		B96A79B421CBEE0A004010B5 /* WebSocketStateIdle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B96A79B321CBEE0A004010B5 /* WebSocketStateIdle.swift */; };
+		B97E353221D67C6400EB3487 /* CircularBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97E353121D67C6400EB3487 /* CircularBuffer.swift */; };
 		B9AB6F5C21CA7531005E9F2A /* WebSocket.swift in Headers */ = {isa = PBXBuildFile; fileRef = B929983421CA72070089F3C7 /* WebSocket.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
@@ -48,6 +49,7 @@
 		B947308E21D27904002756CC /* WebSocketInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketInputStream.swift; sourceTree = "<group>"; };
 		B947309021D417A5002756CC /* WebSocketFrameParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketFrameParser.swift; sourceTree = "<group>"; };
 		B96A79B321CBEE0A004010B5 /* WebSocketStateIdle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketStateIdle.swift; sourceTree = "<group>"; };
+		B97E353121D67C6400EB3487 /* CircularBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularBuffer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +103,7 @@
 				B947308C21D13D3A002756CC /* WebSocketOutputStream.swift */,
 				B947308E21D27904002756CC /* WebSocketInputStream.swift */,
 				B947309021D417A5002756CC /* WebSocketFrameParser.swift */,
+				B97E353121D67C6400EB3487 /* CircularBuffer.swift */,
 			);
 			path = WebSockets;
 			sourceTree = "<group>";
@@ -228,6 +231,7 @@
 				B929983821CA72070089F3C7 /* WebSocket.swift in Sources */,
 				B947308D21D13D3A002756CC /* WebSocketOutputStream.swift in Sources */,
 				B929983A21CA72070089F3C7 /* WebSocketStateStreaming.swift in Sources */,
+				B97E353221D67C6400EB3487 /* CircularBuffer.swift in Sources */,
 				B947309121D417A5002756CC /* WebSocketFrameParser.swift in Sources */,
 				B929983B21CA72070089F3C7 /* WebSocketStateUpgrade.swift in Sources */,
 				B96A79B421CBEE0A004010B5 /* WebSocketStateIdle.swift in Sources */,
@@ -384,7 +388,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = DA448Q5PHY;
+				DEVELOPMENT_TEAM = HQZP6BPXJT;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -411,7 +415,7 @@
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = DA448Q5PHY;
+				DEVELOPMENT_TEAM = HQZP6BPXJT;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
