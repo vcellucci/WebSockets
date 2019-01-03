@@ -141,19 +141,19 @@ webSocket.didReceiveStream = {
     (webSocketInputStream) in
     let win = webSocketInputStream
     win.didReceiveFragment = {
-        (arraySlice) in
-        self.handleStream(win.isBinary, arraySlice)
+        (arrayData) in
+        self.handleStream(win.isBinary, arrayData)
     }
     
     win.didClose = {
-        (arraySlice) in
+        (arrayData) in
         os_log(.debug, "Received stream closed")
     }
 }
 
 func handleStream(_ binary : Bool, _ arraySlice : ArraySlice<UInt8> ){
     if !binary {
-        receivedMessage.text += String(bytes: arraySlice, encoding: .utf8)!
+        receivedMessage.text += String(bytes: arrayData, encoding: .utf8)!
         receivedMessage.setNeedsDisplay()
     }
 }
