@@ -24,6 +24,8 @@ class WebSocketStateStreaming : WebSocketState {
     
     private var bytesSent = 0
     private var writeFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSize)
+    private var readFrame  = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024*16)
+    private var readSize   = 1024*16
     private var currentFrameSize = 0
     private var circularBuffer = CircularBuffer<UInt8>(capacity: maxSize)
 
@@ -47,16 +49,16 @@ class WebSocketStateStreaming : WebSocketState {
                     return .Close
                 }
                 
-                os_log(.debug, "Reading %d bytes...", circularBuffer.availableToWrite())
-                let bytesRead = ins.read(circularBuffer.getWritePtr()!, maxLength: circularBuffer.availableToWrite())
-                _ = circularBuffer.bump(count: bytesRead)
+                os_log(.debug, "Reading %d bytes...", readSize)
+                let bytesRead = ins.read(readFrame, maxLength: readSize)
+                let written = circularBuffer.write(data: readFrame, size: bytesRead)
                 os_log(.debug, "Bytes read = %d, bytes in buffer = %d", bytesRead, circularBuffer.availableToRead())
 
                 var processing = true
                 while( (circularBuffer.availableToRead() > 0) && processing ){
                     let processed = frameParser.parse(buffer: circularBuffer)
                     
-                    os_log(.debug, "Processed %d, left in buffer = %d", processed, circularBuffer.availableToRead())
+                    os_log(.debug, "Processed %d, left in buffer = %d, avail to write = %d", processed, circularBuffer.availableToRead(), circularBuffer.availableToWrite())
                     if  circularBuffer.availableToRead() == 0 {
                         os_log(.debug, "Buffer now empty, resetting")
                         circularBuffer.reset()
@@ -171,5 +173,6 @@ class WebSocketStateStreaming : WebSocketState {
     
     deinit {
         writeFrame.deallocate()
+        readFrame.deallocate()
     }
 }

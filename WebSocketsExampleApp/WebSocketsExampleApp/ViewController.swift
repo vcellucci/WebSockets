@@ -52,14 +52,14 @@ class ViewController: UIViewController {
             (webSocketInputStream) in
             let win = webSocketInputStream
             win.didReceiveFragment = {
-                (arraySlice) in
-                self.handleStream(win.isBinary, arraySlice)
+                (arrayData) in
+                self.handleStream(win.isBinary, arrayData)
             }
             
             win.didClose = {
-                (arraySlice) in
+                (arrayData) in
                 os_log(.debug, "Received stream closed.")
-                self.handleStream(win.isBinary, arraySlice)
+                self.handleStream(win.isBinary, arrayData)
                 self.streamButton.isEnabled = true
             }
         }
@@ -103,9 +103,9 @@ class ViewController: UIViewController {
         connectButton.isEnabled = false
     }
     
-    private func handleStream(_ binary : Bool, _ arraySlice : Array<UInt8> ){
+    private func handleStream(_ binary : Bool, _ arrayData : Array<UInt8> ){
         if !binary {
-            receivedMessage.text += String(bytes: arraySlice, encoding: .utf8)!
+            receivedMessage.text += String(bytes: arrayData, encoding: .utf8)!
             receivedMessage.setNeedsDisplay()
         }
     }
@@ -153,7 +153,7 @@ class ViewController: UIViewController {
                 let chunks = data.count / chunkSize
                 var totalWritten = 0
                 if chunks > 0{
-                    for i in 0...chunks-1 {
+                    for i in 0..<chunks{
                         let start = i * chunkSize
                         let end   = start + chunkSize
                         wos.write(fragment: data[start...end-1])
