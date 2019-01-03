@@ -60,6 +60,7 @@ class ViewController: UIViewController {
                 (arraySlice) in
                 os_log(.debug, "Received stream closed.")
                 self.handleStream(win.isBinary, arraySlice)
+                self.streamButton.isEnabled = true
             }
         }
         
@@ -143,6 +144,7 @@ class ViewController: UIViewController {
                     showMessage("Can't stream if less than 16 KB.  This is just a limitation with the tester app.")
                     return
                 }
+                streamButton.isEnabled = false
                 let chunkSize = 1024*16
                 receivedMessage.text = ""
                 receivedMessage.setNeedsDisplay()
@@ -179,7 +181,7 @@ class ViewController: UIViewController {
     
     @IBAction func onGenerate(_ sender: UIButton) {
         let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        let message = String((0...65534).map{_ in chars.randomElement()!})
+        let message = String((0..<65535).map{_ in chars.randomElement()!})
         messageToSend.text = message
     }
     

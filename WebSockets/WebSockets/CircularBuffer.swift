@@ -153,10 +153,25 @@ class CircularBuffer<T> {
         if c <= currentCount {
             currentCount = c
         }
+        if currentCount < 0 {
+            currentCount = 0
+        }
         a.append(contentsOf: Array(UnsafeBufferPointer(start: gptr, count: currentCount)))
         gptr += currentCount
         readPtr = gptr
         return a
+    }
+    
+    func put(data byte : T) -> Int{
+        guard let pptr = writePtr else {
+            return 0
+        }
+        pptr[0] = byte
+        return bump(count: 1)
+    }
+    
+    func write( data bytes : UnsafeMutablePointer<T>, size count : Int) -> Int {
+        return write(data: Array<T>(UnsafeBufferPointer(start: bytes, count: count)))
     }
 
     func write(data bytes : Array<T>) -> Int {
@@ -176,7 +191,7 @@ class CircularBuffer<T> {
         var bytesWritten = 0
         if availableToWrite() < bytes.count {
             guard let bptr = baseBuffer else { return 0 }
-            while(pptr < eptr ){
+            while( (pptr < eptr) && (index < bytes.count) ){
                 pptr.pointee = bytes[index]
                 index += 1
                 pptr += 1

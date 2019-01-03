@@ -14,6 +14,7 @@ class WebSocketFrameParser {
     var outputStream : OutputStream?
     var transition : WebSocketTransition = .None
     var webSocketInputStream : WebSocketInputStream?
+    var fin : UInt8 = 0
     
     func parse(buffer buf : CircularBuffer<UInt8>) -> Int{
         var processedBytes = 0
@@ -93,7 +94,7 @@ class WebSocketFrameParser {
             return
         }
         
-        let fin = readBuf[0] & 0x80
+        fin = readBuf[0] & 0x80
         let opcode = readBuf[0] & 0x0f
         
         os_log(.debug, "Fin = %d", fin)
@@ -128,8 +129,6 @@ class WebSocketFrameParser {
     }
     
     fileprivate func notifyFragment(_ buf: CircularBuffer<UInt8>, _ wsi: WebSocketInputStream, _ data: Array<UInt8>) {
-        guard let readBuf = buf.getReadPtr() else { return }
-        let fin = readBuf[0] & 0x80
         if fin == 0 {
             if let didReceiveFragmentCallback = wsi.didReceiveFragment {
                 didReceiveFragmentCallback(data)

@@ -11,8 +11,7 @@ import XCTest
 
 class WebSocketsTests: XCTestCase {
     
-    static let maxSize : Int = ((1024*64)+16)
-    var webSocketFrame = UnsafeMutablePointer<UInt8>.allocate(capacity: maxSize)
+    let maxSize : Int = ((1024*64)+16)
 
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -35,18 +34,18 @@ class WebSocketsTests: XCTestCase {
         }
         
         let expectedMessage = "Hello!"
-        webSocketFrame[0] = 0x81
-        webSocketFrame[1] = UInt8(expectedMessage.count)
+        let buffer = CircularBuffer<UInt8>(capacity: maxSize)
+        _ = buffer.put(data: 0x81 )
+        _ = buffer.put(data: UInt8(expectedMessage.count))
         let data : [UInt8] = [UInt8](expectedMessage.utf8)
-        for index in 0...data.count-1 {
-            webSocketFrame[2+index] = data[index]
-        }
+        _ = buffer.write(data: data)
         
         let webSocketFrameParser = WebSocketFrameParser()
         webSocketFrameParser.webSockStateUtils = webSockUtils
-        let processed = webSocketFrameParser.parse(buffer: webSocketFrame, size: 8)
+        let processed = webSocketFrameParser.parse(buffer: buffer)
         XCTAssertEqual(processed, 8)
         XCTAssertEqual(receivedMessage, expectedMessage)
+        XCTAssertEqual(0, buffer.availableToRead())
     }
     
     func testMultipleSimpleTextFrames() {
@@ -54,29 +53,28 @@ class WebSocketsTests: XCTestCase {
         let webSockUtils = WebSocketStateUtils()
         let expected1 = "Hello!"
         let expected2 = "How are you?"
-        
-        webSocketFrame[0] = 0x81
-        webSocketFrame[1] = UInt8(expected1.count)
+        let buffer = CircularBuffer<UInt8>(capacity: maxSize)
+
+        _ = buffer.put(data: 0x81 )
+        _ = buffer.put(data: UInt8(expected1.count))
         
         let data1 = [UInt8](expected1.utf8)
-        for index in 0...data1.count-1 {
-            webSocketFrame[2+index] = data1[index]
-        }
+        _ = buffer.write(data: data1)
         
-        webSocketFrame[8] = 0x81
-        webSocketFrame[9] = UInt8(expected2.count)
+        _ = buffer.put(data: 0x81 )
+        _ = buffer.put(data: UInt8(expected2.count))
         
         let data2 = [UInt8](expected2.utf8)
-        for index in 0...data2.count-1 {
-            webSocketFrame[10+index] = data2[index]
-        }
+        _ = buffer.write(data: data2)
         
         let expectedProcessed1 = expected1.count + 2
         let expectedProcessed2 = expected2.count + 2
         let webSocketFrameParser = WebSocketFrameParser()
         webSocketFrameParser.webSockStateUtils = webSockUtils
-        var processed = webSocketFrameParser.parse(buffer: webSocketFrame, size: expectedProcessed1 + expectedProcessed2)
+        var processed = webSocketFrameParser.parse(buffer: buffer)
         XCTAssertEqual(processed, expectedProcessed1)
+        XCTAssertEqual(expected2.count + 2, buffer.availableToRead())
+
         
         var receivedMessage = ""
         webSockUtils.didReceiveMessage = {
@@ -84,26 +82,26 @@ class WebSocketsTests: XCTestCase {
             receivedMessage = message
         }
         
-        let nextBuffer = webSocketFrame.advanced(by: expectedProcessed1)
-        processed = webSocketFrameParser.parse(buffer: nextBuffer, size: expectedProcessed2)
+        processed = webSocketFrameParser.parse(buffer: buffer)
         XCTAssertEqual(processed, expectedProcessed2)
         XCTAssertEqual(receivedMessage, expected2)
+        XCTAssertEqual(0, buffer.availableToRead())
+
     }
     
     func testUnderflowSimpleTextFrame() {
         let webSockUtils = WebSocketStateUtils()
         let expectedMessage = "Hello!"
+        let buffer = CircularBuffer<UInt8>(capacity: maxSize)
+
+        _ = buffer.put(data: 0x81 )
+        _ = buffer.put(data: UInt8(42))
+        _ = buffer.write(data: [UInt8](expectedMessage.utf8))
         
-        webSocketFrame[0] = 0x81
-        webSocketFrame[1] = UInt8(expectedMessage.count)
-        let data : [UInt8] = [UInt8](expectedMessage.utf8)
-        for index in 0...data.count-1 {
-            webSocketFrame[2+index] = data[index]
-        }
         
         let webSocketFrameParser = WebSocketFrameParser()
         webSocketFrameParser.webSockStateUtils = webSockUtils
-        let processed = webSocketFrameParser.parse(buffer: webSocketFrame, size: 4)
+        let processed = webSocketFrameParser.parse(buffer: buffer)
         XCTAssertEqual(processed, 0)
     }
     
@@ -111,21 +109,23 @@ class WebSocketsTests: XCTestCase {
         let expected = "in hac habitasse platea dictumst vestibulum rhoncus est pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus at augue eget arcu dictum varius duis at consectetur lorem donec massa sapien faucibus et molestie ac feugiat sed lectus vestibulum mattis ullamcorper velit sed ullamcorper morbi tincidunt ornare massa eget egestas purus viverra accumsan in nisl"
         
         let webSockUtils = WebSocketStateUtils()
-        
-        webSocketFrame[0] = 0x81
-        webSocketFrame[1] = 126
+        let buffer = CircularBuffer<UInt8>(capacity: maxSize)
+        _ = buffer.put(data: 0x81 )
+        _ = buffer.put(data: UInt8(126) )
+
         let count = UInt16(expected.count)
-        webSocketFrame[2] = UInt8((count & 0xff00) >> 8)
-        webSocketFrame[3] = UInt8(count & 0x00ff)
+        let size : [UInt8] = [
+            UInt8((count & 0xff00) >> 8),
+            UInt8(count & 0x00ff)
+        ]
+        _ = buffer.write(data: size)
         
         let data : [UInt8] = [UInt8](expected.utf8)
-        for index in 0...data.count-1 {
-            webSocketFrame[4+index] = data[index]
-        }
+        _ = buffer.write(data: data)
         let expectedProcess = data.count + 4
         let webSocketFrameParser = WebSocketFrameParser()
         webSocketFrameParser.webSockStateUtils = webSockUtils
-        let processed = webSocketFrameParser.parse(buffer: webSocketFrame, size: expectedProcess)
+        let processed = webSocketFrameParser.parse(buffer: buffer)
         XCTAssertEqual(processed, expectedProcess)
     }
     
@@ -187,7 +187,7 @@ class WebSocketsTests: XCTestCase {
             return
         }
         
-        for val in 0...3 {
+        for val in 0..<4 {
             pptr[val] = UInt8(val) + 1
         }
         _ = circularBuffer.bump(count: 4)
