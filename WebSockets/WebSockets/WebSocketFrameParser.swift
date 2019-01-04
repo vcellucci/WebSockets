@@ -48,7 +48,7 @@ class WebSocketFrameParser {
             sendPong()
             break
         case .some(.Pong):
-            processedBytes = 2
+            processedBytes = buf.consume(count: 2)
             os_log(.debug, "==> Received Pong Frame")
             receivedPong()
             break
@@ -190,6 +190,7 @@ class WebSocketFrameParser {
     
     private func receivedPong() {
         if let ws = webSockStateUtils {
+            
             ws.raisePong()
         }
     }
