@@ -95,6 +95,11 @@ class CircularBuffer<T> {
     }
     
     func bump(count c : Int) -> Int {
+
+        if( c > maxSize ) {
+            return 0
+        }
+
         guard var pptr = writePtr else {
             return 0
         }
@@ -116,6 +121,10 @@ class CircularBuffer<T> {
     }
     
     func consume(count c : Int) -> Int {
+        if( c > maxSize ){
+            return 0
+        }
+
         guard var gptr = readPtr else {
             return 0
         }
@@ -175,6 +184,10 @@ class CircularBuffer<T> {
     }
 
     func write(data bytes : Array<T>) -> Int {
+
+        if( bytes.count > maxSize ){
+            return 0
+        }
         guard var pptr = writePtr else {
             return 0
         }
