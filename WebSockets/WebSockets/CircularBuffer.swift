@@ -134,7 +134,13 @@ class CircularBuffer<T> {
     }
     
     func getData(count c : Int) -> [T] {
+        
         var a = [T]()
+
+        if( c > maxSize ){
+            return a
+        }
+        
         
         
         guard var gptr = readPtr else { return a }
